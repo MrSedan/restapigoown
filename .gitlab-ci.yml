@@ -37,7 +37,7 @@ format:
 compile:
   stage: build
   script:
-    - go build -race -ldflags "-extldflags '-static'" -o $CI_PROJECT_DIR/cmd/apiserver/mybinary
+    - go build -race -ldflags "-extldflags '-static'" -v ./cmd/apiserver/mybinary
   artifacts:
     paths:
       - mybinary
