@@ -5,7 +5,7 @@ services:
   - postgres:latest
 variables:
   POSTGRES_DB: myrest_test
-  POSTGRES_USER: user
+  POSTGRES_USER: "user"
   POSTGRES_PASSWORD: "test"
 
 variables:
