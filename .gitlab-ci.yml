@@ -19,7 +19,7 @@ variables:
 # Thus, making a symbolic link corrects this.
 before_script:
   - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
-  - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
+  - cp -r $CI_PROJECT_DIR/* $GOPATH/src/$REPO_NAME/
   - cd $GOPATH/src/$REPO_NAME
 
 stages:
@@ -37,7 +37,8 @@ format:
 compile:
   stage: build
   script:
-    - go build -race -ldflags "-extldflags '-static'" -v $CI_PROJECT_DIR/cmd/apiserver
+  	- dep ensure
+    - go build -o $CI_PROJECT_DIR/cmd/apiserver/mybui
   artifacts:
     paths:
-      - $CI_PROJECT_DIR/apiserver
+      - apiserver
