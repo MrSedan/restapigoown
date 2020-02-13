@@ -37,7 +37,7 @@ format:
 compile:
   stage: build
   script:
-  	- dep ensure
+    - dep ensure
     - go build -o $CI_PROJECT_DIR/cmd/apiserver/mybui
   artifacts:
     paths:
