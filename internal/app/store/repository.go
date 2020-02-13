@@ -6,5 +6,7 @@ import "github.com/MrSedan/restapigoown/internal/app/model"
 type UserRepository interface {
 	Create(*model.User) error
 	// Find(int) (*model.User, error)
-	// FindByEmail(string) (*model.User, error)
+	FindByEmail(string) (*model.User, error)
+	ClaimToken(*model.User, string)
+	GetToken(string) error
 }

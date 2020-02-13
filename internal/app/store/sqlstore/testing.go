@@ -1,21 +1,24 @@
 package sqlstore
 
 import (
-	"database/sql"
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/jinzhu/gorm"
+	// GORM driver for Postgres
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 // TestDB ...
-func TestDB(t *testing.T, databaseURL string) (*sql.DB, func(...string)) {
+func TestDB(t *testing.T, databaseURL string) (*gorm.DB, func(...string)) {
 	t.Helper()
 
-	db, err := sql.Open("postgres", databaseURL)
+	db, err := gorm.Open("postgres", databaseURL)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Ping(); err != nil {
+	if err := db.DB().Ping(); err != nil {
 		t.Fatal(err)
 	}
 	return db, func(tables ...string) {

@@ -8,11 +8,11 @@ import (
 
 // User a struct of user info
 type User struct {
-	ID                int    `json:"id"`
-	Password          string `json:"-"`
+	ID                int    `json:"id" gorm:"not null;primary key"`
+	Password          string `sql:"-" json:"-"`
+	Email             string `gorm:"not null;unique" json:"email"`
 	EncryptedPassword string `json:"encrypted_password"`
-	Email             string `json:"email"`
-	JwtToken          string `json:"-"`
+	JwtToken          string `sql:"jwt_token" json:"-"`
 }
 
 // Validate a validate of user

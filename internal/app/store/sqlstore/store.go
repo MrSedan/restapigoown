@@ -1,19 +1,20 @@
 package sqlstore
 
 import (
-	"database/sql"
-
+	"github.com/MrSedan/restapigoown/internal/app/model"
 	"github.com/MrSedan/restapigoown/internal/app/store"
+	"github.com/jinzhu/gorm"
 )
 
 // Store is the struct of db
 type Store struct {
-	db             *sql.DB
+	db             *gorm.DB
 	userRepository *UserRepository
 }
 
 // New is Creating new Store
-func New(db *sql.DB) *Store {
+func New(db *gorm.DB) *Store {
+	db.AutoMigrate(&model.User{})
 	return &Store{
 		db: db,
 	}

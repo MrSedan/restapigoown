@@ -4,11 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/MrSedan/restapigoown/internal/app/model"
 	"github.com/MrSedan/restapigoown/internal/app/store"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -26,7 +29,7 @@ const (
 )
 
 var (
-	errUnprocEnt = errors.New("This email is registered yet")
+	errIncorrectEmailOrPassword = errors.New("incorrect email or password")
 )
 
 func newServer(store store.Store) *server {
@@ -44,6 +47,8 @@ func (s *server) configureRouter() {
 	s.router.Use(s.logRequest)
 	s.router.HandleFunc("/", s.handleHome())
 	s.router.HandleFunc("/createuser", s.handleCreateUser()).Methods("POST")
+	s.router.HandleFunc("/login", s.handleLoginUser()).Methods("POST")
+	s.router.Handle("/test", s.validateToken(s.handleHome()))
 }
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.router.ServeHTTP(w, r)
@@ -73,10 +78,40 @@ func (s *server) handleCreateUser() http.HandlerFunc {
 			Password: req.Password,
 		}
 		if err := s.store.User().Create(u); err != nil {
-			s.error(w, r, http.StatusUnprocessableEntity, errUnprocEnt)
+			s.error(w, r, http.StatusUnprocessableEntity, err)
 			return
 		}
 		s.respond(w, r, http.StatusCreated, u)
+	}
+}
+
+func (s *server) handleLoginUser() http.HandlerFunc {
+	type request struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		req := &request{}
+		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+		u, err := s.store.User().FindByEmail(req.Email)
+		if err != nil || !u.ComparePassword(req.Password) {
+			s.error(w, r, http.StatusUnauthorized, errIncorrectEmailOrPassword)
+			return
+		}
+
+		token := jwt.New(jwt.SigningMethodHS256)
+		rtClaims := token.Claims.(jwt.MapClaims)
+		rtClaims["sub"] = 1
+		rtClaims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+		tokenString, _ := token.SignedString(s.jwtKey)
+		s.store.User().ClaimToken(u, tokenString)
+		tokenString = fmt.Sprintf("Bearer %s", tokenString)
+		w.Header().Add("Authorization", tokenString)
+		s.respond(w, r, http.StatusOK, map[string]string{"status": "ok"})
 	}
 }
 
@@ -105,6 +140,30 @@ func (s *server) setRequestID(next http.Handler) http.Handler {
 		id := uuid.New().String()
 		w.Header().Set("X-Request-ID", id)
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ctxKeyRequestID, id)))
+	})
+}
+
+func (s *server) validateToken(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		req := r.Header.Get("authorization")
+		if req != "" {
+			bearerToken := strings.Split(req, " ")
+			if len(bearerToken) == 2 {
+				if err := s.store.User().GetToken(bearerToken[1]); err != nil {
+					s.error(w, r, http.StatusUnprocessableEntity, err)
+					return
+				}
+				rw := &responseWriter{w, http.StatusOK}
+				next.ServeHTTP(rw, r)
+			} else {
+				s.error(w, r, http.StatusUnprocessableEntity, store.ErrNotValidToken)
+				return
+			}
+
+		} else {
+			s.error(w, r, http.StatusBadRequest, errors.New("no token"))
+			return
+		}
 	})
 }
 
