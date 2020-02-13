@@ -1,9 +1,14 @@
 # This file is a template, and might need editing before it works on your project.
 image: golang:latest
 
+services:
+  - postgres:latest
+variables:
+  POSTGRES_DB: myrest_test
+
 variables:
   # Please edit to your GitLab project
-  REPO_NAME: gitlab.com/namespace/project
+  REPO_NAME: gitlab.com/MrSedan1/go-rest-api
 
 # The problem is that to be able to use go get, one needs to put
 # the repository in the $GOPATH. So for example if your gitlab domain
