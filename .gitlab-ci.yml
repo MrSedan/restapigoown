@@ -3,14 +3,13 @@ image: golang:latest
 
 services:
   - postgres:latest
-variables:
-  POSTGRES_DB: myrest_test
-  POSTGRES_USER: tester
-  POSTGRES_PASSWORD: "test"
 
 variables:
   # Please edit to your GitLab project
   REPO_NAME: gitlab.com/MrSedan1/go-rest-api
+  POSTGRES_DB: myrest_test
+  POSTGRES_USER: tester
+  POSTGRES_PASSWORD: test
 
 # The problem is that to be able to use go get, one needs to put
 # the repository in the $GOPATH. So for example if your gitlab domain
