@@ -27,6 +27,14 @@ func (r *UserRepository) Create(u *model.User) error {
 	).Scan(&u.ID)
 }
 
+// CreateProfile ctreating a profile
+func (r *UserRepository) CreateProfile(u *model.User) error {
+	return r.store.db.DB().QueryRow(
+		"INSERT INTO profiles (user_email) VALUES ((SELECT email FROM users WHERE email=$1)) RETURNING user_email",
+		u.Email,
+	).Scan(&u.Email)
+}
+
 // FindByEmail finding user in DB by email-addr
 func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 	u := &model.User{}
@@ -51,13 +59,41 @@ func (r *UserRepository) ClaimToken(u *model.User, token string) {
 }
 
 // GetToken is checking token in db
-func (r *UserRepository) GetToken(token string) error {
-	var tok = ""
+func (r *UserRepository) GetToken(token string) (string, error) {
+	var (
+		tok string
+		em  string
+	)
 	if err := r.store.db.DB().QueryRow(
-		"SELECT jwt_token FROM users WHERE jwt_token=$1",
+		"SELECT jwt_token, email FROM users WHERE jwt_token=$1",
 		token,
-	).Scan(&tok); err != nil || token == "" {
-		return store.ErrNotValidToken
+	).Scan(&tok, &em); err != nil || tok == "" {
+		return "", store.ErrNotValidToken
 	}
-	return nil
+	return em, nil
+}
+
+// GetProfile Getting profile
+func (r *UserRepository) GetProfile(email string) *model.Profile {
+	type sc struct {
+		ID        int
+		UserEmail string
+		About     string
+	}
+	u := &model.User{}
+	sk := &sc{}
+	r.store.db.DB().QueryRow(
+		"SELECT id FROM users WHERE email=$1",
+		email,
+	).Scan(&u.ID)
+	r.store.db.DB().QueryRow(
+		"SELECT user_email, about FROM profiles WHERE user_email=$1",
+		email,
+	).Scan(&sk.UserEmail, &sk.About)
+	pr := &model.Profile{
+		User:      u,
+		UserEmail: sk.UserEmail,
+		About:     sk.About,
+	}
+	return pr
 }

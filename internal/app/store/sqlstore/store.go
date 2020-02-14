@@ -14,7 +14,8 @@ type Store struct {
 
 // New is Creating new Store
 func New(db *gorm.DB) *Store {
-	db.AutoMigrate(&model.User{})
+	db.AutoMigrate(&model.User{}, &model.Profile{})
+	db.Model(&model.Profile{}).AddForeignKey("user_email", "users(email)", "CASCADE", "CASCADE")
 	return &Store{
 		db: db,
 	}

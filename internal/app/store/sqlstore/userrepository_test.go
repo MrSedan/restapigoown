@@ -44,11 +44,12 @@ func TestUserRepository_GetTokenAndClaimToken(t *testing.T) {
 	defer teardown("users")
 	db.AutoMigrate(&model.User{})
 	s := sqlstore.New(db)
-	err := s.User().GetToken("test")
+	_, err := s.User().GetToken("test")
 	assert.EqualError(t, err, store.ErrNotValidToken.Error())
 
 	u := model.TestUser(t)
 	s.User().Create(u)
 	s.User().ClaimToken(u, "test")
-	assert.NoError(t, s.User().GetToken("test"))
+	_, err = s.User().GetToken("test")
+	assert.NoError(t, err)
 }

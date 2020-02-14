@@ -11,7 +11,7 @@ type User struct {
 	ID                int    `json:"id" gorm:"not null;primary key"`
 	Password          string `sql:"-" json:"-"`
 	Email             string `gorm:"not null;unique" json:"email"`
-	EncryptedPassword string `json:"encrypted_password"`
+	EncryptedPassword string `json:"encrypted_password,omitempty"`
 	JwtToken          string `sql:"jwt_token" json:"-"`
 }
 
