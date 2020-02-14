@@ -19,7 +19,8 @@ variables:
 # Thus, making a symbolic link corrects this.
 before_script:
   - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
-  - cp -r $CI_PROJECT_DIR/* $GOPATH/src/$REPO_NAME/
+  - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
+  - go get -u github.com/golang/dep/cmd/dep
   - cd $GOPATH/src/$REPO_NAME
 
 stages:
@@ -37,8 +38,7 @@ format:
 compile:
   stage: build
   script:
-    - dep ensure
-    - go build -o $CI_PROJECT_DIR/cmd/apiserver/mybui
+    - go build -race -ldflags "-extldflags '-static'" -o $CI_PROJECT_DIR/cmd/apiserver/mybinary
   artifacts:
     paths:
-      - apiserver
+      - mybinary
