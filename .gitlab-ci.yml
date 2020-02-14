@@ -31,6 +31,7 @@ stages:
 format:
   stage: test
   script:
+  	- dep ensure
     - go fmt $(go list ./... | grep -v /vendor/)
     - go vet $(go list ./... | grep -v /vendor/)
     - go test -race $(go list ./... | grep -v /vendor/)
@@ -38,6 +39,7 @@ format:
 compile:
   stage: build
   script:
+  	- dep ensure
     - go build -race -ldflags "-extldflags '-static'" -o $CI_PROJECT_DIR/cmd/apiserver/mybinary
   artifacts:
     paths:
