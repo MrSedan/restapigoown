@@ -20,7 +20,6 @@ variables:
 before_script:
   - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
   - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
-  - go get -u github.com/golang/dep/cmd/dep
   - cd $GOPATH/src/$REPO_NAME
 
 stages:
@@ -31,7 +30,6 @@ stages:
 format:
   stage: test
   script:
-    - dep ensure
     - go fmt $(go list ./... | grep -v /vendor/)
     - go vet $(go list ./... | grep -v /vendor/)
     - go test -race $(go list ./... | grep -v /vendor/)
@@ -39,8 +37,7 @@ format:
 compile:
   stage: build
   script:
-    - dep ensure
-    - go build -race -ldflags "-extldflags '-static'" -o $CI_PROJECT_DIR/cmd/apiserver/mybinary
+    - go build -race -ldflags "-extldflags '-static'" -v $CI_PROJECT_DIR/cmd/apiserver
   artifacts:
     paths:
-      - mybinary
+      - apiserver
