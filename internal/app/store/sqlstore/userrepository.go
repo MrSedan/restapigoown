@@ -30,7 +30,7 @@ func (r *UserRepository) Create(u *model.User) error {
 // CreateProfile ctreating a profile
 func (r *UserRepository) CreateProfile(u *model.User) error {
 	return r.store.db.DB().QueryRow(
-		"INSERT INTO profiles (user_email) VALUES ((SELECT email FROM users WHERE email=$1)) RETURNING user_email",
+		"INSERT INTO profiles (user_email , user_id) VALUES ((SELECT email FROM users WHERE email=$1), (SELECT id FROM users WHERE email=$1)) RETURNING user_email",
 		u.Email,
 	).Scan(&u.Email)
 }
@@ -91,7 +91,7 @@ func (r *UserRepository) GetProfile(email string) *model.Profile {
 		email,
 	).Scan(&sk.UserEmail, &sk.About)
 	pr := &model.Profile{
-		User:      u,
+		UserID:    u.ID,
 		UserEmail: sk.UserEmail,
 		About:     sk.About,
 	}
