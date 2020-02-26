@@ -11,4 +11,5 @@ type UserRepository interface {
 	FindByEmail(string) (*model.User, error)
 	ClaimToken(*model.User, string)
 	GetToken(string) (string, error)
+	EditAbout(int, string) error
 }

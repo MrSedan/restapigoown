@@ -39,9 +39,10 @@ func (r *UserRepository) CreateProfile(u *model.User) error {
 func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.DB().QueryRow(
-		"SELECT email, encrypted_password FROM users WHERE email = $1",
+		"SELECT id, email, encrypted_password FROM users WHERE email = $1",
 		email,
 	).Scan(
+		&u.ID,
 		&u.Email,
 		&u.EncryptedPassword,
 	); err != nil {
@@ -96,4 +97,14 @@ func (r *UserRepository) GetProfile(email string) *model.Profile {
 		About:     sk.About,
 	}
 	return pr
+}
+
+//EditAbout editing about
+func (r *UserRepository) EditAbout(id int, about string) error {
+	_, err := r.store.db.DB().Exec(
+		"UPDATE profiles SET about=$1 WHERE user_id=$2",
+		about,
+		id,
+	)
+	return err
 }

@@ -30,6 +30,7 @@ const (
 
 var (
 	errIncorrectEmailOrPassword = errors.New("incorrect email or password")
+	errNotAboutField            = errors.New("not about field")
 )
 
 func newServer(store store.Store) *server {
@@ -50,6 +51,7 @@ func (s *server) configureRouter() {
 	s.router.HandleFunc("/login", s.handleLoginUser()).Methods("POST")
 	s.router.Handle("/myprofile", s.validateToken(s.handleMyProfile())).Methods("POST")
 	s.router.Handle("/test", s.validateToken(s.handleHome()))
+	s.router.Handle("/editabout", s.validateToken(s.handleEditAbout())).Methods("GET")
 }
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.router.ServeHTTP(w, r)
@@ -87,6 +89,26 @@ func (s *server) handleCreateUser() http.HandlerFunc {
 			return
 		}
 		s.respond(w, r, http.StatusCreated, u)
+	}
+}
+
+func (s *server) handleEditAbout() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		ret := r.Header.Get("authorization")
+		bearerToken := strings.Split(ret, " ")
+		em, _ := s.store.User().GetToken(bearerToken[1])
+		u, _ := s.store.User().FindByEmail(em)
+		about := r.FormValue("about")
+		if about == "" {
+			s.error(w, r, http.StatusBadRequest, errNotAboutField)
+			return
+		}
+		if err := s.store.User().EditAbout(u.ID, about); err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+			return
+		}
+		s.respond(w, r, http.StatusOK, map[string]string{"status": "ok"})
 	}
 }
 
