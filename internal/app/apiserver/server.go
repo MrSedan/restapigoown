@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/MrSedan/restapigoown/internal/app/model"
@@ -31,6 +30,7 @@ const (
 var (
 	errIncorrectEmailOrPassword = errors.New("incorrect email or password")
 	errNotAboutField            = errors.New("not about field")
+	errUserErr                  = errors.New("incorrect email or password")
 )
 
 func newServer(store store.Store) *server {
@@ -47,11 +47,11 @@ func (s *server) configureRouter() {
 	s.router.Use(s.setRequestID)
 	s.router.Use(s.logRequest)
 	s.router.HandleFunc("/", s.handleHome())
-	s.router.HandleFunc("/createuser", s.handleCreateUser()).Methods("POST")
-	s.router.HandleFunc("/login", s.handleLoginUser()).Methods("POST")
-	s.router.Handle("/myprofile", s.validateToken(s.handleMyProfile())).Methods("POST")
-	s.router.Handle("/test", s.validateToken(s.handleHome()))
-	s.router.Handle("/editabout", s.validateToken(s.handleEditAbout())).Methods("GET")
+	s.router.HandleFunc("/user/create", s.handleCreateUser()).Methods("POST")
+	s.router.HandleFunc("/user/login", s.handleLoginUser()).Methods("POST")
+	s.router.HandleFunc("/user/{email}/profile", s.handleProfile()).Methods("POST")
+	s.router.HandleFunc("/user/{email}/edit/profile", s.handleEditAbout()).Methods("GET")
+	s.router.HandleFunc("/user/{email}/edit/password", s.handleEditPassword()).Methods("POST")
 }
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.router.ServeHTTP(w, r)
@@ -95,10 +95,14 @@ func (s *server) handleCreateUser() http.HandlerFunc {
 func (s *server) handleEditAbout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		ret := r.Header.Get("authorization")
-		bearerToken := strings.Split(ret, " ")
-		em, _ := s.store.User().GetToken(bearerToken[1])
-		u, _ := s.store.User().FindByEmail(em)
+		bearerToken := r.FormValue("token")
+		em := mux.Vars(r)["email"]
+		tokenEmail, _ := s.store.User().GetToken(bearerToken)
+		u, err := s.store.User().FindByEmail(em)
+		if err != nil || em != tokenEmail {
+			s.error(w, r, http.StatusBadRequest, errUserErr)
+			return
+		}
 		about := r.FormValue("about")
 		if about == "" {
 			s.error(w, r, http.StatusBadRequest, errNotAboutField)
@@ -136,24 +140,58 @@ func (s *server) handleLoginUser() http.HandlerFunc {
 		rtClaims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 		tokenString, _ := token.SignedString(s.jwtKey)
 		s.store.User().ClaimToken(u, tokenString)
-		tokenString = fmt.Sprintf("Bearer %s", tokenString)
+		tokenString = fmt.Sprint(tokenString)
 		w.Header().Add("Authorization", tokenString)
 		s.respond(w, r, http.StatusOK, map[string]string{"status": "ok"})
 	}
 }
 
-func (s *server) handleMyProfile() http.HandlerFunc {
+func (s *server) handleProfile() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		req := r.Header.Get("authorization")
-		bearerToken := strings.Split(req, " ")
-		email, err := s.store.User().GetToken(bearerToken[1])
+		u, err := s.store.User().FindByEmail(mux.Vars(r)["email"])
 		if err != nil {
 			s.error(w, r, http.StatusUnprocessableEntity, err)
 			return
 		}
+		email := u.Email
 		prof := s.store.User().GetProfile(email)
 		s.respond(w, r, http.StatusOK, prof)
+	}
+}
+
+func (s *server) handleEditPassword() http.HandlerFunc {
+	type request struct {
+		OldPass string `json:"old_password"`
+		NewPass string `json:"new_password"`
+		Token   string `json:"token"`
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		req := &request{}
+		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+		bearerToken := req.Token
+		email := mux.Vars(r)["email"]
+		tokenEmail, _ := s.store.User().GetToken(bearerToken)
+		u, err := s.store.User().FindByEmail(email)
+		if err != nil || email != tokenEmail {
+			s.error(w, r, http.StatusBadRequest, errUserErr)
+			return
+		}
+		u, err = s.store.User().FindByEmail(email)
+		if err != nil || !u.ComparePassword(req.OldPass) {
+			s.error(w, r, http.StatusUnauthorized, errIncorrectEmailOrPassword)
+			return
+		}
+		u.Password = req.NewPass
+		if err := s.store.User().EditPass(u); err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+			return
+		}
+		s.respond(w, r, http.StatusOK, map[string]string{"status": "ok"})
 	}
 }
 
@@ -182,30 +220,6 @@ func (s *server) setRequestID(next http.Handler) http.Handler {
 		id := uuid.New().String()
 		w.Header().Set("X-Request-ID", id)
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ctxKeyRequestID, id)))
-	})
-}
-
-func (s *server) validateToken(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req := r.Header.Get("authorization")
-		if req != "" {
-			bearerToken := strings.Split(req, " ")
-			if len(bearerToken) == 2 {
-				if _, err := s.store.User().GetToken(bearerToken[1]); err != nil {
-					s.error(w, r, http.StatusUnprocessableEntity, err)
-					return
-				}
-				rw := &responseWriter{w, http.StatusOK}
-				next.ServeHTTP(rw, r)
-			} else {
-				s.error(w, r, http.StatusUnprocessableEntity, store.ErrNotValidToken)
-				return
-			}
-
-		} else {
-			s.error(w, r, http.StatusBadRequest, errors.New("no token"))
-			return
-		}
 	})
 }
 

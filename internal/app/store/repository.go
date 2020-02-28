@@ -12,4 +12,5 @@ type UserRepository interface {
 	ClaimToken(*model.User, string)
 	GetToken(string) (string, error)
 	EditAbout(int, string) error
+	EditPass(*model.User) error
 }

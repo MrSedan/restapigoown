@@ -108,3 +108,16 @@ func (r *UserRepository) EditAbout(id int, about string) error {
 	)
 	return err
 }
+
+//EditPass changing a password to new
+func (r *UserRepository) EditPass(u *model.User) error {
+	if err := u.BeforeCreate(); err != nil {
+		return err
+	}
+	_, err := r.store.db.DB().Exec(
+		"UPDATE users SET encrypted_password=$1 WHERE email=$2",
+		u.EncryptedPassword,
+		u.Email,
+	)
+	return err
+}
