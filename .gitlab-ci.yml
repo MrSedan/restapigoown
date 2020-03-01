@@ -3,6 +3,7 @@ image: golang:latest
 
 services:
   - postgres:latest
+  - docker:dind
 
 variables:
   # Please edit to your GitLab project
@@ -18,6 +19,7 @@ variables:
 # repository in /go/src/gitlab.com/namespace/project
 # Thus, making a symbolic link corrects this.
 before_script:
+  - apk add --update python py-pip python-dev && pip install docker-compose
   - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
   - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
   - cd $GOPATH/src/$REPO_NAME
