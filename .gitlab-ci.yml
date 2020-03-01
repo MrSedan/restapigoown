@@ -43,7 +43,7 @@ docker-comp:
     - docker:dind
   script:
     - apk add docker-compose --update-cache
-    - docker-compose -f docker-compose.yml build api-test
+    - docker-compose -f docker-compose.yml build
 
 compile:
   stage: build
