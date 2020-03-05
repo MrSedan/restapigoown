@@ -37,7 +37,7 @@ format:
 compile:
   stage: build
   script:
-    - go build -race -ldflags "-extldflags '-static'" -v ./cmd/apiserver
+    - go build -race -ldflags "-extldflags '-static'" -v $GOPATH/src/$REPO_NAME/backend/cmd/apiserver
   artifacts:
     paths:
       - apiserver
