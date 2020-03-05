@@ -1,4 +1,4 @@
-/apiserver
+**/apiserver
 go.sum?*
 migrations/
 data/
