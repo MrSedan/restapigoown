@@ -20,7 +20,7 @@ variables:
 before_script:
   - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
   - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
-  - cd $GOPATH/src/$REPO_NAME/backend
+  - cd $GOPATH/src/$REPO_NAME
 
 stages:
   - test
@@ -37,7 +37,7 @@ format:
 compile:
   stage: build
   script:
-    - go build -race -ldflags "-extldflags '-static'" -v $GOPATH/src/$REPO_NAME/backend/cmd/apiserver
+    - go build -race -ldflags "-extldflags '-static'" -v ./backend/cmd/apiserver
   artifacts:
     paths:
       - apiserver
