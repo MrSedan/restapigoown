@@ -1,0 +1,59 @@
+.login-card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 5px 5px 10px rgba(0,0,0,0.2);
+    padding: 40px;
+    width: 400px;
+    text-align: center;
+    display: block;
+    border-radius: 8px;
+}
+
+.login-card #pass_error {
+    background: rgba($color: #b3022065, $alpha: 0.3);
+    font-size: 13px;
+    margin: 10px;
+    padding: 8px;
+    width: 200px;
+    margin-left: 90px;
+    border-radius: 8px;
+    color: rgba($color: #5c5c5c, $alpha: 1.0);
+    list-style: none;
+}
+
+input[type="password"], input[type="email"] {
+    display: block;
+    text-align: center;
+    margin: 20px auto;
+    padding: 10px;
+    outline: none;
+    border: 2px solid rgba(28, 56, 179, 0.623);
+    border-radius: 24px;
+    width: 200px;
+    transition: .5s;
+}
+input[type="password"]:focus, input[type="email"]:focus {
+    width: 250px;
+    border: 2px solid rgba(179, 28, 28, 0.623);
+}
+input[type="button"]{
+    background: none;
+    padding: 10px 14px;
+    border: 2px solid rgba(28, 56, 179, 0.623);
+    border-radius: 24px;
+    transition: .2s ease;
+}
+input[type="button"]:hover {
+    background: rgb(28, 56, 179);
+    color: white;
+    cursor: pointer;
+}
+
+.signup {
+    display: block;
+    margin: 10px 0;
+    font-size: 13px;
+    outline: none;
+}
