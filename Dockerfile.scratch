@@ -1,4 +1,0 @@
-FROM scratch
-ADD apiserver /
-EXPOSE 8080
-CMD ["/apiserver"]

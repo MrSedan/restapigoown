@@ -22,11 +22,11 @@ services:
     go-docker-image:
         image: mrsedan/go-rest-api
         restart: always
-        build: ./
+        build: ./backend
         ports: 
             - '8080:8080'
         volumes: 
-            - ./:/app
+            - ./backend:/app
         depends_on: 
             - db
     

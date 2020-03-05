@@ -1,4 +1,0 @@
-database_url = "host=172.17.0.1 dbname=myrest sslmode=disable user=postgres password=postgres"
-bind_addr = ":8080"
-log_level = "debug"
-jwt_key = "secret"

@@ -3,7 +3,6 @@ image: golang:latest
 
 services:
   - postgres:latest
-  - docker:dind
 
 variables:
   # Please edit to your GitLab project
@@ -25,42 +24,22 @@ before_script:
 
 stages:
   - test
-  - docker-test
   - build
   - deploy
 
 format:
   stage: test
   script:
+    - cd backend
     - go fmt $(go list ./... | grep -v /vendor/)
     - go vet $(go list ./... | grep -v /vendor/)
     - go test -race $(go list ./... | grep -v /vendor/)
 
-docker-comp:
-  stage: docker-test
-  image: docker
-  services:
-    - docker:dind
-  script:
-    - apk add docker-compose --update-cache
-    - docker-compose -f docker-compose.yml build
-
 compile:
   stage: build
   script:
+    - cd backend
     - go build -race -ldflags "-extldflags '-static'" -v ./cmd/apiserver
   artifacts:
     paths:
-      - apiserver
-
-deploy-staging:
-  stage: deploy
-  image: docker
-  services:
-    - docker:dind
-  script:
-    - apk add docker-compose --update-cache
-    - docker-compose -f docker-compose.yml down
-    - docker-compose -f docker-compose.yml up -d
-  only:
-    - master
+      - backend/apiserver
