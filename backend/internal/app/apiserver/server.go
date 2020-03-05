@@ -49,7 +49,7 @@ func (s *server) configureRouter() {
 	s.router.HandleFunc("/", s.handleHome())
 	s.router.HandleFunc("/user/create", s.handleCreateUser()).Methods("POST")
 	s.router.HandleFunc("/user/login", s.handleLoginUser()).Methods("POST")
-	s.router.HandleFunc("/user/{email}/profile", s.handleProfile()).Methods("POST")
+	s.router.HandleFunc("/user/{email}/profile", s.handleProfile()).Methods("GET")
 	s.router.HandleFunc("/user/{email}/edit/profile", s.handleEditAbout()).Methods("GET")
 	s.router.HandleFunc("/user/{email}/edit/password", s.handleEditPassword()).Methods("POST")
 }
@@ -66,8 +66,10 @@ func (s *server) handleHome() http.HandlerFunc {
 
 func (s *server) handleCreateUser() http.HandlerFunc {
 	type request struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		Email     string `json:"email"`
+		Password  string `json:"password"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -77,8 +79,10 @@ func (s *server) handleCreateUser() http.HandlerFunc {
 			return
 		}
 		u := &model.User{
-			Email:    req.Email,
-			Password: req.Password,
+			FirstName: req.FirstName,
+			LastName:  req.LastName,
+			Email:     req.Email,
+			Password:  req.Password,
 		}
 		if err := s.store.User().Create(u); err != nil {
 			s.error(w, r, http.StatusUnprocessableEntity, err)
@@ -141,8 +145,7 @@ func (s *server) handleLoginUser() http.HandlerFunc {
 		tokenString, _ := token.SignedString(s.jwtKey)
 		s.store.User().ClaimToken(u, tokenString)
 		tokenString = fmt.Sprint(tokenString)
-		w.Header().Add("Authorization", tokenString)
-		s.respond(w, r, http.StatusOK, map[string]string{"status": "ok"})
+		s.respond(w, r, http.StatusOK, map[string]string{"email": req.Email, "token": tokenString})
 	}
 }
 
