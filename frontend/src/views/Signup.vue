@@ -28,7 +28,7 @@ export default {
     },
     methods: {
         CreateUser(){
-            if (!(this.firstname.length && this.lastname.length && this.email.length && this.password.length && this.re_password.length && this.photo_url.length)) {
+            if (!(this.firstname.length && this.lastname.length && this.email.length && this.password.length && this.re_password.length)) {
                 this.error = "All fields are required!"
                 return
             }
