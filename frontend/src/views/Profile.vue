@@ -47,10 +47,22 @@ export default {
         })
     },
     created() {
-       if (!localStorage.getItem('account')){
+        if (!localStorage.getItem('account')){
             this.$router.push('/login')
             return
-        } 
+        }
+        try{
+            let email = JSON.parse(localStorage.getItem('account')).email
+            this.$http.get(`api/user/${email}/profile`)
+            .then(r => {
+                this.name = r.data.first_name+' '+r.data.last_name
+                this.about = r.data.about
+            })
+        }
+        catch(e){
+            this.$router.push('/login')
+        }
+        
     }
 }
 </script>

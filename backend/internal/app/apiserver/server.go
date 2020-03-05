@@ -84,6 +84,10 @@ func (s *server) handleCreateUser() http.HandlerFunc {
 			Email:     req.Email,
 			Password:  req.Password,
 		}
+		if _, err := s.store.User().FindByEmail(u.Email); err == nil {
+			s.error(w, r, http.StatusBadRequest, errors.New("dublicate account"))
+			return
+		}
 		if err := s.store.User().Create(u); err != nil {
 			s.error(w, r, http.StatusUnprocessableEntity, err)
 			return
