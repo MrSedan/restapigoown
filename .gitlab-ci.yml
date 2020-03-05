@@ -38,6 +38,7 @@ format:
 compile:
   stage: build
   script:
+    - cd backend
     - go build -race -ldflags "-extldflags '-static'" -v ./cmd/apiserver
   artifacts:
     paths:
