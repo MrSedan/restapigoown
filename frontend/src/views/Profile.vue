@@ -4,7 +4,7 @@
         <div class="content">
                 <div class="profile">
                     <div class="profile-flex">
-                        <img src="../static/photo.jpg" alt="">
+                        <img :src="'https://www.gravatar.com/avatar/' + id" alt="">
                         <div class="profile-info">
                             <h3 class="name">{{name}}</h3>
                             <h6 class="online">Дофига онлайн</h6>
@@ -25,7 +25,20 @@ export default {
     data(){
         return {
             name: "",
-            about: ""
+            about: "",
+            id: 0
+        }
+    },
+    methods: {
+        getHash(s){
+            var hash = 0, i, chr;
+            if (s.length === 0) return hash;
+            for (i = 0; i < s.length; i++) {
+                chr   = s.charCodeAt(i);
+                hash  = ((hash << 5) - hash) + chr;
+                hash |= 0; // Convert to 32bit integer
+            }
+            return hash;
         }
     },
     components: {
@@ -36,24 +49,10 @@ export default {
             this.$router.push('/login')
             return
         }
-        let email = JSON.parse(localStorage.getItem('account')).email
-        this.$http.get(`api/user/${email}/profile`)
-        .then(r => {
-            this.name = r.data.first_name+' '+r.data.last_name
-            this.about = r.data.about
-        })
-        .catch(e => {
-            alert(e)
-        })
-    },
-    created() {
-        if (!localStorage.getItem('account')){
-            this.$router.push('/login')
-            return
-        }
         try{
-            let email = JSON.parse(localStorage.getItem('account')).email
-            this.$http.get(`api/user/${email}/profile`)
+            let id = JSON.parse(localStorage.getItem('account')).id
+            this.id = id
+            this.$http.get(`api/user/${id}/profile`)
             .then(r => {
                 this.name = r.data.first_name+' '+r.data.last_name
                 this.about = r.data.about
@@ -62,7 +61,6 @@ export default {
         catch(e){
             this.$router.push('/login')
         }
-        
     }
 }
 </script>
