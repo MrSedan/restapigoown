@@ -79,7 +79,7 @@ func (r *UserRepository) GetToken(token string) (string, error) {
 }
 
 // GetProfile Getting profile
-func (r *UserRepository) GetProfile(email string) *model.Profile {
+func (r *UserRepository) GetProfile(id string) (*model.Profile, error) {
 	type sc struct {
 		FirstName string
 		LastName  string
@@ -89,13 +89,15 @@ func (r *UserRepository) GetProfile(email string) *model.Profile {
 	}
 	u := &model.User{}
 	sk := &sc{}
+	if err := r.store.db.DB().QueryRow(
+		"SELECT id FROM users WHERE id=$1",
+		id,
+	).Scan(&u.ID); err == sql.ErrNoRows {
+		return nil, store.ErrRecordNotFound
+	}
 	r.store.db.DB().QueryRow(
-		"SELECT id FROM users WHERE email=$1",
-		email,
-	).Scan(&u.ID)
-	r.store.db.DB().QueryRow(
-		"SELECT first_name, last_name, user_email, about FROM profiles WHERE user_email=$1",
-		email,
+		"SELECT first_name, last_name, user_email, about FROM profiles WHERE user_id=$1",
+		id,
 	).Scan(&sk.FirstName, &sk.LastName, &sk.UserEmail, &sk.About)
 	pr := &model.Profile{
 		FirstName: sk.FirstName,
@@ -104,7 +106,7 @@ func (r *UserRepository) GetProfile(email string) *model.Profile {
 		UserEmail: sk.UserEmail,
 		About:     sk.About,
 	}
-	return pr
+	return pr, nil
 }
 
 //EditAbout editing about

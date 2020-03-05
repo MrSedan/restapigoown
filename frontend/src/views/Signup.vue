@@ -28,7 +28,7 @@ export default {
     },
     methods: {
         CreateUser(){
-            if (!(this.firstname.length && this.lastname.length && this.email.length && this.password.length && this.re_password.length)) {
+            if (!(this.firstname.length && this.lastname.length && this.email.length && this.password.length && this.re_password.length && this.photo_url.length)) {
                 this.error = "All fields are required!"
                 return
             }
@@ -43,7 +43,8 @@ export default {
                 first_name: this.firstname,
                 last_name: this.lastname,
                 email: this.email,
-                password: this.password
+                password: this.password,
+                photo_url: this.photo_url
             })
             this.$http.post('api/user/create', ac).then(() => {this.$router.push('/login')})
             .catch(e => {

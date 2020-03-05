@@ -49,7 +49,7 @@ func (s *server) configureRouter() {
 	s.router.HandleFunc("/", s.handleHome())
 	s.router.HandleFunc("/user/create", s.handleCreateUser()).Methods("POST")
 	s.router.HandleFunc("/user/login", s.handleLoginUser()).Methods("POST")
-	s.router.HandleFunc("/user/{email}/profile", s.handleProfile()).Methods("GET")
+	s.router.HandleFunc("/user/{id:[0-9]+}/profile", s.handleProfile()).Methods("GET")
 	s.router.HandleFunc("/user/{email}/edit/profile", s.handleEditAbout()).Methods("GET")
 	s.router.HandleFunc("/user/{email}/edit/password", s.handleEditPassword()).Methods("POST")
 }
@@ -149,21 +149,20 @@ func (s *server) handleLoginUser() http.HandlerFunc {
 		tokenString, _ := token.SignedString(s.jwtKey)
 		s.store.User().ClaimToken(u, tokenString)
 		tokenString = fmt.Sprint(tokenString)
-		s.respond(w, r, http.StatusOK, map[string]string{"email": req.Email, "token": tokenString})
+		s.respond(w, r, http.StatusOK, map[string]interface{}{"id": u.ID, "token": tokenString})
 	}
 }
 
 func (s *server) handleProfile() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		u, err := s.store.User().FindByEmail(mux.Vars(r)["email"])
+		id := mux.Vars(r)["id"]
+		u, err := s.store.User().GetProfile(id)
 		if err != nil {
 			s.error(w, r, http.StatusUnprocessableEntity, err)
 			return
 		}
-		email := u.Email
-		prof := s.store.User().GetProfile(email)
-		s.respond(w, r, http.StatusOK, prof)
+		s.respond(w, r, http.StatusOK, u)
 	}
 }
 
