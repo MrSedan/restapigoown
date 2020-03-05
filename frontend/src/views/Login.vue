@@ -3,8 +3,8 @@
         <h2>Login</h2>
         <input type="email" placeholder="Email" v-model="email">
         <input type="password" placeholder="Password" v-model="password">
+        <div id="pass_error" v-if="error">{{ error }}</div>
         <input type="button" value="Sign In"  @click="login()">
-        {{info}}
         <router-link to="/signup" class="signup">Sign Up?</router-link>
     </div>
 </template>
@@ -17,13 +17,13 @@ export default {
         return {
             email: "",
             password: "",
-            info: ""
+            error: ""
         }
     },
     methods: {
         login(){
             if (!this.email || !this.password){
-                alert('err')
+                this.error = "All fields are required!"
                 return
             }
             let credentials = JSON.stringify({
@@ -33,7 +33,7 @@ export default {
             this.$http.post('api/user/login', credentials).then(user =>{
                 localStorage.setItem("account", JSON.stringify(user.data))
                 this.$router.push('/profile')
-            }).catch(e => {alert(e)})
+            }).catch(() => {this.error = "Invalid email or password!"})
         }
     }
 }
