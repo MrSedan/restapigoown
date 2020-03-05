@@ -4,8 +4,9 @@ import (
 	"net/http"
 
 	"github.com/MrSedan/restapigoown/backend/internal/app/store/sqlstore"
-	// This is driver for PostgresDB
 	"github.com/jinzhu/gorm"
+
+	// This is driver for PostgresDB
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 

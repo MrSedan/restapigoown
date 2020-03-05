@@ -8,4 +8,3 @@
 </template>
 
 <style src="./static/main.scss" lang="scss"></style>
-
