@@ -3,7 +3,7 @@ package model_test
 import (
 	"testing"
 
-	"github.com/MrSedan/restapigoown/internal/app/model"
+	"github.com/MrSedan/restapigoown/backend/internal/app/model"
 	"github.com/stretchr/testify/assert"
 )
 

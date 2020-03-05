@@ -30,14 +30,15 @@ stages:
 format:
   stage: test
   script:
-    - go fmt $(go list ./backend/... | grep -v /vendor/)
-    - go vet $(go list ./backend/... | grep -v /vendor/)
-    - go test -race $(go list ./backend/... | grep -v /vendor/)
+    - cd backend
+    - go fmt $(go list ./... | grep -v /vendor/)
+    - go vet $(go list ./... | grep -v /vendor/)
+    - go test -race $(go list ./... | grep -v /vendor/)
 
 compile:
   stage: build
   script:
-    - go build -race -ldflags "-extldflags '-static'" -v ./backend/cmd/apiserver
+    - go build -race -ldflags "-extldflags '-static'" -v ./cmd/apiserver
   artifacts:
     paths:
       - apiserver

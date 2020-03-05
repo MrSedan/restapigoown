@@ -1,4 +1,4 @@
-module github.com/MrSedan/restapigoown
+module github.com/MrSedan/restapigoown/backend
 
 go 1.13
 
