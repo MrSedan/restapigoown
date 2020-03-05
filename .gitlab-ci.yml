@@ -42,4 +42,4 @@ compile:
     - go build -race -ldflags "-extldflags '-static'" -v ./cmd/apiserver
   artifacts:
     paths:
-      - apiserver
+      - backend/apiserver
