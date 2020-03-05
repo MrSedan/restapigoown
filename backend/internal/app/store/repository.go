@@ -1,6 +1,6 @@
 package store
 
-import "github.com/MrSedan/restapigoown/internal/app/model"
+import "github.com/MrSedan/restapigoown/backend/internal/app/model"
 
 // UserRepository is the interface for db
 type UserRepository interface {

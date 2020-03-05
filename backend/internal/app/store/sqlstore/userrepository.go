@@ -3,8 +3,8 @@ package sqlstore
 import (
 	"database/sql"
 
-	"github.com/MrSedan/restapigoown/internal/app/model"
-	"github.com/MrSedan/restapigoown/internal/app/store"
+	"github.com/MrSedan/restapigoown/backend/internal/app/model"
+	"github.com/MrSedan/restapigoown/backend/internal/app/store"
 )
 
 // UserRepository a struct with store

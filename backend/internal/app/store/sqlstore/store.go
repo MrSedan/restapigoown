@@ -1,8 +1,8 @@
 package sqlstore
 
 import (
-	"github.com/MrSedan/restapigoown/internal/app/model"
-	"github.com/MrSedan/restapigoown/internal/app/store"
+	"github.com/MrSedan/restapigoown/backend/internal/app/model"
+	"github.com/MrSedan/restapigoown/backend/internal/app/store"
 	"github.com/jinzhu/gorm"
 )
 
