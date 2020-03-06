@@ -10,7 +10,7 @@ const routes = [
       component: () => import('../views/Home.vue')
     },
     {
-      path: '/profile/:id',
+      path: '/profile/:id(\\d+)',
       name: 'Profile',
       component: () => import('../views/Profile.vue')
     },
