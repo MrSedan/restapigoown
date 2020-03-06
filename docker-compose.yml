@@ -19,20 +19,6 @@ services:
             - 5432:5432
         networks:
             - psql-pgql
-    frontend:
-        image: mrsedan/vue-socset
-        restart: always
-        build: ./frontend
-        volumes: 
-            - ./frontend:/frontend
-        expose: 
-            - 80
-            - 443
-        ports: 
-            - 80:80
-            - 443:443
-        networks: 
-            - vue-front
     go-docker-image:
         image: mrsedan/go-rest-api
         restart: always
@@ -45,5 +31,4 @@ services:
             - db
     
 networks:
-    vue-front:
     psql-pgql:
