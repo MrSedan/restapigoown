@@ -58,6 +58,27 @@ func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 	return u, nil
 }
 
+//FindByID searching user by id
+func (r *UserRepository) FindByID(id string) (*model.User, error) {
+	u := &model.User{}
+	if err := r.store.db.DB().QueryRow(
+		"SELECT first_name, last_name, id, email, encrypted_password FROM users WHERE id = $1",
+		id,
+	).Scan(
+		&u.FirstName,
+		&u.LastName,
+		&u.ID,
+		&u.Email,
+		&u.EncryptedPassword,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.ErrRecordNotFound
+		}
+		return nil, err
+	}
+	return u, nil
+}
+
 // ClaimToken set a new token to db
 func (r *UserRepository) ClaimToken(u *model.User, token string) {
 	r.store.db.Model(&model.User{}).Where("email=?", u.Email).Update("jwt_token", token)
@@ -67,15 +88,15 @@ func (r *UserRepository) ClaimToken(u *model.User, token string) {
 func (r *UserRepository) GetToken(token string) (string, error) {
 	var (
 		tok string
-		em  string
+		id  string
 	)
 	if err := r.store.db.DB().QueryRow(
-		"SELECT jwt_token, email FROM users WHERE jwt_token=$1",
+		"SELECT jwt_token, id FROM users WHERE jwt_token=$1",
 		token,
-	).Scan(&tok, &em); err != nil || tok == "" {
+	).Scan(&tok, &id); err != nil || tok == "" {
 		return "", store.ErrNotValidToken
 	}
-	return em, nil
+	return id, nil
 }
 
 // GetProfile Getting profile
@@ -96,14 +117,13 @@ func (r *UserRepository) GetProfile(id string) (*model.Profile, error) {
 		return nil, store.ErrRecordNotFound
 	}
 	r.store.db.DB().QueryRow(
-		"SELECT first_name, last_name, user_email, about FROM profiles WHERE user_id=$1",
+		"SELECT first_name, last_name, about FROM profiles WHERE user_id=$1",
 		id,
-	).Scan(&sk.FirstName, &sk.LastName, &sk.UserEmail, &sk.About)
+	).Scan(&sk.FirstName, &sk.LastName, &sk.About)
 	pr := &model.Profile{
 		FirstName: sk.FirstName,
 		LastName:  sk.LastName,
 		UserID:    u.ID,
-		UserEmail: sk.UserEmail,
 		About:     sk.About,
 	}
 	return pr, nil
@@ -125,9 +145,9 @@ func (r *UserRepository) EditPass(u *model.User) error {
 		return err
 	}
 	_, err := r.store.db.DB().Exec(
-		"UPDATE users SET encrypted_password=$1 WHERE email=$2",
+		"UPDATE users SET encrypted_password=$1 WHERE id=$2",
 		u.EncryptedPassword,
-		u.Email,
+		u.ID,
 	)
 	return err
 }

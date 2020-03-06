@@ -59,6 +59,7 @@ export default {
             })
         }
         catch(e){
+            localStorage.removeItem('account')
             this.$router.push('/login')
         }
     }
