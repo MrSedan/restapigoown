@@ -34,12 +34,14 @@ export default {
     },
     mounted() {
         let id = this.$route.params.id
-        this.id = id
         this.$http.get(`/api/user/${id}/profile`)
         .then(r => {
             this.name = r.data.first_name+' '+r.data.last_name
             this.about = r.data.about
+        }).catch(()=>{
+            this.$router.push("/404")
         })
+        this.id = id
     }
 }
 </script>
