@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -101,10 +100,6 @@ func (s *server) handleCreateUser() http.HandlerFunc {
 			s.error(w, r, http.StatusUnprocessableEntity, err)
 			return
 		}
-		if err := DownloadFile(fmt.Sprintf("avatars/%d.jpg", u.ID), fmt.Sprintf("https://www.gravatar.com/avatar/%x?s=300", md5.Sum([]byte(u.Email)))); err != nil {
-			s.error(w, r, http.StatusUnprocessableEntity, err)
-			return
-		}
 		s.respond(w, r, http.StatusCreated, u)
 	}
 }
@@ -113,13 +108,18 @@ func (s *server) handleGetUserAvatar() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "image/jpeg")
 		id := mux.Vars(r)["id"]
-		img, err := os.Open(fmt.Sprintf("avatars/%s.jpg", id))
+		u, err := s.store.User().FindByID(id)
 		if err != nil {
 			s.error(w, r, http.StatusBadRequest, err)
 			return
 		}
-		defer img.Close()
-		io.Copy(w, img)
+		resp, err := http.Get(fmt.Sprintf("https://www.gravatar.com/avatar/%x?s=300&d=identicon", md5.Sum([]byte(u.Email))))
+		if err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+			return
+		}
+		defer resp.Body.Close()
+		io.Copy(w, resp.Body)
 	}
 }
 

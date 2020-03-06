@@ -32,7 +32,7 @@ export default {
             })
             this.$http.post('api/user/login', credentials).then(user =>{
                 localStorage.setItem("account", JSON.stringify(user.data))
-                this.$router.push('/profile')
+                this.$router.push('/profile/'+user.data.id)
             }).catch(() => {this.error = "Invalid email or password!"})
         }
     }

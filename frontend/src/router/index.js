@@ -5,7 +5,12 @@ Vue.use(VueRouter)
 
 const routes = [
     {
-      path: '/profile',
+      path: '/',
+      name: "Home",
+      component: () => import('../views/Home.vue')
+    },
+    {
+      path: '/profile/:id',
       name: 'Profile',
       component: () => import('../views/Profile.vue')
     },
@@ -18,6 +23,11 @@ const routes = [
       path: '/signup',
       name: "Sign Up",
       component: () => import('../views/Signup.vue')
+    },
+    {
+      path: '/*',
+      name: '404 not found',
+      component: () => import('../views/404.vue')
     }
   // {
   //   path: '/about',
@@ -30,6 +40,7 @@ const routes = [
 ]
 
 const router = new VueRouter({
+  mode: 'history',
   routes
 })
 

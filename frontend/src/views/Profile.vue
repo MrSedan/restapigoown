@@ -4,7 +4,7 @@
         <div class="content">
                 <div class="profile">
                     <div class="profile-flex">
-                        <img :src="'https://www.gravatar.com/avatar/' + id" alt="">
+                        <img :src="'/api/user/'+id+'/avatar'" alt="Error photo">
                         <div class="profile-info">
                             <h3 class="name">{{name}}</h3>
                             <h6 class="online">Дофига онлайн</h6>
@@ -26,42 +26,20 @@ export default {
         return {
             name: "",
             about: "",
-            id: 0
-        }
-    },
-    methods: {
-        getHash(s){
-            var hash = 0, i, chr;
-            if (s.length === 0) return hash;
-            for (i = 0; i < s.length; i++) {
-                chr   = s.charCodeAt(i);
-                hash  = ((hash << 5) - hash) + chr;
-                hash |= 0; // Convert to 32bit integer
-            }
-            return hash;
+            id: 0,
         }
     },
     components: {
         LeftMenu
     },
     mounted() {
-        if (!localStorage.getItem('account')){
-            this.$router.push('/login')
-            return
-        }
-        try{
-            let id = JSON.parse(localStorage.getItem('account')).id
-            this.id = id
-            this.$http.get(`api/user/${id}/profile`)
-            .then(r => {
-                this.name = r.data.first_name+' '+r.data.last_name
-                this.about = r.data.about
-            })
-        }
-        catch(e){
-            localStorage.removeItem('account')
-            this.$router.push('/login')
-        }
+        let id = this.$route.params.id
+        this.id = id
+        this.$http.get(`/api/user/${id}/profile`)
+        .then(r => {
+            this.name = r.data.first_name+' '+r.data.last_name
+            this.about = r.data.about
+        })
     }
 }
 </script>

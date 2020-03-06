@@ -1,2 +1,4 @@
 ./apiserver
 avatars/*
+**/server.toml
+**/main.go

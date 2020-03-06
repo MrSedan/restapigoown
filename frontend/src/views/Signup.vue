@@ -45,7 +45,7 @@ export default {
                 email: this.email.toLowerCase().trim(),
                 password: this.password
             })
-            this.$http.post('api/user/create', ac).then(() => {this.$router.push('/login')})
+            this.$http.post('/api/user/create', ac).then(() => {this.$router.push('/login')})
             .catch(e => {
                 if (e.response.status == 400){
                     this.error = "This email alreay registered!"
