@@ -18,7 +18,7 @@ services:
         ports:
             - 5432:5432
         networks:
-            - psql-pgql 
+            - psql-pgql
     go-docker-image:
         image: mrsedan/go-rest-api
         restart: always

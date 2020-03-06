@@ -2,10 +2,13 @@ package apiserver
 
 import (
 	"context"
+	"crypto/md5"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/MrSedan/restapigoown/backend/internal/app/model"
@@ -50,8 +53,9 @@ func (s *server) configureRouter() {
 	s.router.HandleFunc("/user/create", s.handleCreateUser()).Methods("POST")
 	s.router.HandleFunc("/user/login", s.handleLoginUser()).Methods("POST")
 	s.router.HandleFunc("/user/{id:[0-9]+}/profile", s.handleProfile()).Methods("GET")
-	s.router.HandleFunc("/user/{email}/edit/profile", s.handleEditAbout()).Methods("GET")
-	s.router.HandleFunc("/user/{email}/edit/password", s.handleEditPassword()).Methods("POST")
+	s.router.HandleFunc("/user/{id:[0-9]+}/avatar", s.handleGetUserAvatar()).Methods("GET")
+	s.router.HandleFunc("/user/{id:[0-9]+}/edit/profile", s.handleEditAbout()).Methods("GET")
+	s.router.HandleFunc("/user/{id:[0-9]+}/edit/password", s.handleEditPassword()).Methods("POST")
 }
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.router.ServeHTTP(w, r)
@@ -81,7 +85,7 @@ func (s *server) handleCreateUser() http.HandlerFunc {
 		u := &model.User{
 			FirstName: req.FirstName,
 			LastName:  req.LastName,
-			Email:     req.Email,
+			Email:     strings.ToLower(req.Email),
 			Password:  req.Password,
 		}
 		if _, err := s.store.User().FindByEmail(u.Email); err == nil {
@@ -100,13 +104,32 @@ func (s *server) handleCreateUser() http.HandlerFunc {
 	}
 }
 
+func (s *server) handleGetUserAvatar() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "image/jpeg")
+		id := mux.Vars(r)["id"]
+		u, err := s.store.User().FindByID(id)
+		if err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+		resp, err := http.Get(fmt.Sprintf("https://www.gravatar.com/avatar/%x?s=300&d=identicon", md5.Sum([]byte(u.Email))))
+		if err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+			return
+		}
+		defer resp.Body.Close()
+		io.Copy(w, resp.Body)
+	}
+}
+
 func (s *server) handleEditAbout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		bearerToken := r.FormValue("token")
-		em := mux.Vars(r)["email"]
+		em := mux.Vars(r)["id"]
 		tokenEmail, _ := s.store.User().GetToken(bearerToken)
-		u, err := s.store.User().FindByEmail(em)
+		u, err := s.store.User().FindByID(em)
 		if err != nil || em != tokenEmail {
 			s.error(w, r, http.StatusBadRequest, errUserErr)
 			return
@@ -136,7 +159,7 @@ func (s *server) handleLoginUser() http.HandlerFunc {
 			s.error(w, r, http.StatusBadRequest, err)
 			return
 		}
-		u, err := s.store.User().FindByEmail(req.Email)
+		u, err := s.store.User().FindByEmail(strings.ToLower(req.Email))
 		if err != nil || !u.ComparePassword(req.Password) {
 			s.error(w, r, http.StatusUnauthorized, errIncorrectEmailOrPassword)
 			return
@@ -180,16 +203,11 @@ func (s *server) handleEditPassword() http.HandlerFunc {
 			return
 		}
 		bearerToken := req.Token
-		email := mux.Vars(r)["email"]
-		tokenEmail, _ := s.store.User().GetToken(bearerToken)
-		u, err := s.store.User().FindByEmail(email)
-		if err != nil || email != tokenEmail {
+		em := mux.Vars(r)["id"]
+		tokenID, _ := s.store.User().GetToken(bearerToken)
+		u, err := s.store.User().FindByID(em)
+		if err != nil || em != tokenID || !u.ComparePassword(req.OldPass) {
 			s.error(w, r, http.StatusBadRequest, errUserErr)
-			return
-		}
-		u, err = s.store.User().FindByEmail(email)
-		if err != nil || !u.ComparePassword(req.OldPass) {
-			s.error(w, r, http.StatusUnauthorized, errIncorrectEmailOrPassword)
 			return
 		}
 		u.Password = req.NewPass

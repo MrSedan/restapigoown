@@ -27,12 +27,12 @@ export default {
                 return
             }
             let credentials = JSON.stringify({
-                email: this.email,
+                email: this.email.toLowerCase().trim(),
                 password: this.password
             })
             this.$http.post('api/user/login', credentials).then(user =>{
                 localStorage.setItem("account", JSON.stringify(user.data))
-                this.$router.push('/profile')
+                this.$router.push('/profile/'+user.data.id)
             }).catch(() => {this.error = "Invalid email or password!"})
         }
     }

@@ -3,3 +3,6 @@ go.sum?*
 migrations/
 data/
 backend/apiserver
+.vscode
+**/server.toml
+**/main.go

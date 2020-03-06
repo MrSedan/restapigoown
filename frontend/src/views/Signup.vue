@@ -42,11 +42,10 @@ export default {
             let ac = JSON.stringify({
                 first_name: this.firstname,
                 last_name: this.lastname,
-                email: this.email,
-                password: this.password,
-                photo_url: this.photo_url
+                email: this.email.toLowerCase().trim(),
+                password: this.password
             })
-            this.$http.post('api/user/create', ac).then(() => {this.$router.push('/login')})
+            this.$http.post('/api/user/create', ac).then(() => {this.$router.push('/login')})
             .catch(e => {
                 if (e.response.status == 400){
                     this.error = "This email alreay registered!"
