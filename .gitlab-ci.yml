@@ -25,7 +25,9 @@ before_script:
 stages:
   - test
   - build
+  - docker-test
   - deploy
+
 
 format:
   stage: test
@@ -35,6 +37,15 @@ format:
     - go vet $(go list ./... | grep -v /vendor/)
     - go test -race $(go list ./... | grep -v /vendor/)
 
+docker-comp:
+  stage: docker-test
+  image: docker
+  services:
+    - docker:dind
+  script:
+    - apk add docker-compose --update-cache
+    - docker-compose -f docker-compose.yml build
+
 compile:
   stage: build
   script:
@@ -43,3 +54,15 @@ compile:
   artifacts:
     paths:
       - backend/apiserver
+
+deploy-staging:
+  stage: deploy
+  image: docker
+  services:
+    - docker:dind
+  script:
+    - apk add docker-compose --update-cache
+    - docker-compose -f docker-compose.yml down
+    - docker-compose -f docker-compose.yml up -d
+  only:
+    - master
