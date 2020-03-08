@@ -1,6 +1,8 @@
 package apiserver
 
 import (
+	"context"
+	"net"
 	"net/http"
 
 	"github.com/MrSedan/restapigoown/backend/internal/app/store/sqlstore"
@@ -9,6 +11,16 @@ import (
 	// This is driver for PostgresDB
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
+
+type contextKey struct {
+	key string
+}
+
+var connContextKey = &contextKey{"http-conn"}
+
+func saveConnInContext(ctx context.Context, c net.Conn) context.Context {
+	return context.WithValue(ctx, connContextKey, c)
+}
 
 // Start is a function for start server
 func Start(config *Config) error {
@@ -20,7 +32,12 @@ func Start(config *Config) error {
 	store := sqlstore.New(db)
 	srv := newServer(store)
 	srv.jwtKey = config.JwtKey
-	return http.ListenAndServe(config.BindAddr, srv)
+	server := http.Server{
+		Addr:        config.BindAddr,
+		ConnContext: saveConnInContext,
+		Handler:     srv,
+	}
+	return server.ListenAndServe()
 }
 
 func newDB(dbURL string) (*gorm.DB, error) {
