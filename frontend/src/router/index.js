@@ -25,6 +25,11 @@ const routes = [
       component: () => import('../views/Signup.vue')
     },
     {
+      path: '/messages/:id(\\d+)',
+      name: 'Messages',
+      component: () => import('../views/Messages.vue')
+    },
+    {
       path: '/*',
       name: '404 not found',
       component: () => import('../views/404.vue')
