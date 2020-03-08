@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
 	"github.com/MrSedan/restapigoown/backend/internal/app/model"
 	"github.com/MrSedan/restapigoown/backend/internal/app/store"
+	"github.com/MrSedan/restapigoown/backend/internal/app/websockets"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -20,6 +22,7 @@ import (
 )
 
 type server struct {
+	wsServ *websockets.Server
 	router *mux.Router
 	logger *logrus.Logger
 	store  store.Store
@@ -38,11 +41,13 @@ var (
 
 func newServer(store store.Store) *server {
 	s := &server{
+		wsServ: websockets.NewServer(),
 		router: mux.NewRouter(),
 		logger: logrus.New(),
 		store:  store,
 	}
 	s.configureRouter()
+	go s.wsServ.Run()
 	return s
 }
 
@@ -50,6 +55,7 @@ func (s *server) configureRouter() {
 	s.router.Use(s.setRequestID)
 	s.router.Use(s.logRequest)
 	s.router.HandleFunc("/", s.handleHome())
+	s.router.HandleFunc(`/chat/{id:[0-9]+\.[0-9]+}`, s.handleWs())
 	s.router.HandleFunc("/user/create", s.handleCreateUser()).Methods("POST")
 	s.router.HandleFunc("/user/login", s.handleLoginUser()).Methods("POST")
 	s.router.HandleFunc("/user/{id:[0-9]+}/profile", s.handleProfile()).Methods("GET")
@@ -65,6 +71,23 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s *server) handleHome() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("ok"))
+	}
+}
+
+func (s *server) handleWs() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w = newResponseWriter(w)
+		id := mux.Vars(r)["id"]
+		ids := strings.Split(id, ".")
+		sort.Strings(ids)
+		id = strings.Join(ids, ".")
+		hub, ok := s.wsServ.Hubs[id]
+		if !ok {
+			hub = websockets.NewHub(id, s.wsServ)
+			s.wsServ.NewHub <- hub
+			go hub.Run()
+		}
+		websockets.ServeWs(hub, w, r)
 	}
 }
 
@@ -128,7 +151,11 @@ func (s *server) handleEditAbout() http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		bearerToken := r.FormValue("token")
 		em := mux.Vars(r)["id"]
-		tokenEmail, _ := s.store.User().GetToken(bearerToken)
+		tokenEmail, err := s.store.User().GetToken(bearerToken)
+		if err != nil {
+			s.error(w, r, http.StatusUnauthorized, err)
+			return
+		}
 		u, err := s.store.User().FindByID(em)
 		if err != nil || em != tokenEmail {
 			s.error(w, r, http.StatusBadRequest, errUserErr)
@@ -204,9 +231,13 @@ func (s *server) handleEditPassword() http.HandlerFunc {
 		}
 		bearerToken := req.Token
 		em := mux.Vars(r)["id"]
-		tokenID, _ := s.store.User().GetToken(bearerToken)
+		tokenID, err := s.store.User().GetToken(bearerToken)
+		if err != nil {
+			s.error(w, r, http.StatusUnauthorized, err)
+			return
+		}
 		u, err := s.store.User().FindByID(em)
-		if err != nil || em != tokenID || !u.ComparePassword(req.OldPass) {
+		if err != nil || string(u.ID) != tokenID || !u.ComparePassword(req.OldPass) {
 			s.error(w, r, http.StatusBadRequest, errUserErr)
 			return
 		}
@@ -228,7 +259,8 @@ func (s *server) logRequest(next http.Handler) http.Handler {
 		})
 		logger.Infof("started %s %s", r.Method, r.RequestURI)
 		start := time.Now()
-		rw := &responseWriter{w, http.StatusOK}
+		rw := newResponseWriter(w)
+		rw.code = http.StatusOK
 		next.ServeHTTP(rw, r)
 		logger.Infof(
 			"completed with %d %s in %v",
