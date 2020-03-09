@@ -1,7 +1,9 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/MrSedan/restapigoown/backend/internal/app/model"
 	"github.com/MrSedan/restapigoown/backend/internal/app/store"
@@ -11,6 +13,8 @@ import (
 type UserRepository struct {
 	store *Store
 }
+
+var ctx context.Context
 
 // Create a user row in db
 func (r *UserRepository) Create(u *model.User) error {
@@ -84,8 +88,8 @@ func (r *UserRepository) ClaimToken(u *model.User, token string) {
 	r.store.db.Model(&model.User{}).Where("email=?", u.Email).Update("jwt_token", token)
 }
 
-// GetToken is checking token in db
-func (r *UserRepository) GetToken(token string) (string, error) {
+// CheckToken is checking token in db
+func (r *UserRepository) CheckToken(token string) (string, error) {
 	var (
 		tok string
 		id  string
@@ -97,6 +101,43 @@ func (r *UserRepository) GetToken(token string) (string, error) {
 		return "", store.ErrNotValidToken
 	}
 	return id, nil
+}
+
+// GetToken getting token from db by ID
+func (r *UserRepository) GetToken(id int) (string, error) {
+	var token string
+	err := r.store.db.DB().QueryRow(
+		"SELECT jwt_token FROM users WHERE id=$1",
+		id,
+	).Scan(&token)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+// GetAllUsers getting all users from DB
+func (r *UserRepository) GetAllUsers() ([]*model.User, error) {
+	users := make([]*model.User, 0)
+	rows, err := r.store.db.DB().Query("SELECT first_name, last_name, id FROM users")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var u = &model.User{}
+		if err := rows.Scan(&u.FirstName, &u.LastName, &u.ID); err != nil {
+			return nil, err
+		}
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+	if len(users) > 0 {
+		return users, nil
+	}
+	return nil, errors.New("No users in db")
 }
 
 // GetProfile Getting profile
@@ -150,4 +191,13 @@ func (r *UserRepository) EditPass(u *model.User) error {
 		u.ID,
 	)
 	return err
+}
+
+// CompareToken comparing given token with user token
+func (r *UserRepository) CompareToken(u *model.User, token string) bool {
+	usrToken, _ := r.store.User().GetToken(u.ID)
+	if token == usrToken {
+		return true
+	}
+	return false
 }

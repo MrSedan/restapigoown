@@ -1,6 +1,5 @@
 <template>
     <div class="flex-container">
-        <LeftMenu></LeftMenu>
         <div class="content">
                 <div class="profile">
                     <div class="profile-flex">
@@ -19,7 +18,6 @@
 </template>
 
 <script>
-import LeftMenu from "@/components/LeftMenu.vue"
 export default {
     name: 'Profie',
     data(){
@@ -28,9 +26,6 @@ export default {
             about: "",
             id: 0,
         }
-    },
-    components: {
-        LeftMenu
     },
     mounted() {
         let id = this.$route.params.id

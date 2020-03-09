@@ -25,10 +25,15 @@ const routes = [
       component: () => import('../views/Signup.vue')
     },
     {
-      path: '/messages/:id(\\d+)',
+      path: '/messages',
       name: 'Messages',
       component: () => import('../views/Messages.vue')
     },
+    // {
+    //   path: '/chat/:id(\\d)+',
+    //   name: 'Chat',
+    //   component: () => import('@/views/Chat.vue')
+    // },
     {
       path: '/*',
       name: '404 not found',

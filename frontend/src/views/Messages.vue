@@ -1,67 +1,94 @@
 <template>
     <div class="flex-container">
-        <LeftMenu></LeftMenu>
         <div class="container">
-            <h1>Chat</h1>
-            <div class="message" v-for="i in messages" :key="i">
-                {{i.id}}:{{i.msg}}   
-            </div>
-            <input type="text" v-model="message" placeholder="Message">
-            <input type="submit" value="Send" @click="sendMsg()">
+            <h1>Users</h1>
+            <router-link v-for="i in users" :key="i.id" :to="'/profile/'+i.id" class="userurl" tag="div">
+            <img :src="'/api/user/'+i.id+'/avatar'">
+            <h3>{{i.name}}</h3>
+            </router-link>
+            
         </div>
     </div>
 </template>
 
 <script>
-import LeftMenu from "@/components/LeftMenu.vue"
 export default {
     name: "Messages",
-    components: {
-        LeftMenu
-    },
     data() {
-        return {
-            id: this.$route.params.id,
-            socket: null,
-            messages: [],
-            message: ""
-        }
-    },
-    methods:{
-        sendMsg(){
-            if (this.message.length > 0) {
-                let id = JSON.parse(localStorage.getItem('account')).id
-                let msg =  JSON.stringify({id: id, msg: this.message})
-                this.socket.send(msg)
-            }
+        return{
+            users: [],
+            id: null
         }
     },
     mounted(){
-        try{
-            let id = JSON.parse(localStorage.getItem('account')).id
-            this.socket = new WebSocket(`ws://localhost:8080/api/chat/${id}.${this.id}`)
-            this.socket.onopen = () => {
-                console.log("Socket connected")
-                let msg = JSON.stringify({id: id, msg: "connected"})
-                this.socket.send(msg)
+        if(localStorage.getItem('account')){
+            var u = JSON.parse(localStorage.getItem('account'))
+            if (u.id == 0 || u.token == 0){
+                localStorage.removeItem('account')
+                this.$router.push("/login")
             }
-
-            this.socket.onclose = (event) => {
-                console.log("Socket closed", event)
-            }
-
-            this.socket.onmessage = (msg) => {
-                this.messages.push(JSON.parse(msg.data))
-                console.log(msg)
-            }
-
-            this.socket.onerror = (event) => {
-                console.log("Socket error: ", event)
-            }
-        } catch(e) {
-            this.$router.push("/")
+            this.$http.post("/api/checkauth", this.$qs.stringify({id: u.id, token: u.token}), {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }).catch(()=>{
+                localStorage.removeItem('account')
+                this.$router.push("/login")
+            })
+            this.id = u.id
+        } else {
+            this.$router.push("/login")
         }
-        
+        this.$http.post(`/api/user/${this.id}/getmessagehistory`, this.$qs.stringify({id: this.id, token: u.token}), {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }).then(r => {
+                for (let i=0;i<r.data.length;i++){
+                    if (this.id != r.data[i].id){
+
+                        this.users.push({id: r.data[i].id, name: r.data[i].first_name + ' ' +r.data[i].last_name})
+                    }
+                }
+            })
     }
 }
 </script>
+
+<style lang="scss" scoped>
+.container{
+    margin-left: 40px;
+    width: 100%;
+}
+
+.userurl{
+    width: 80%;
+    min-width: 300px;
+    height: 80px;
+    margin-bottom: 20px;
+    border-radius: 15px;
+    box-shadow: 5px 5px 10px rgba(0,0,0,0.2);
+    padding: 20px 10px;
+    text-decoration: none;
+    color: black;
+    outline: none;
+    display: flex;
+    transition: .3s linear;
+    vertical-align: middle;
+}
+
+.userurl h3{
+    display: inline-block;
+    line-height: 80px;
+    margin: auto 10px;
+}
+
+.userurl img{
+    width: 74px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 10px;
+   
+}
+
+.userurl:hover{
+    background: rgb(173, 173, 173);
+    cursor: pointer;
+}
+</style>

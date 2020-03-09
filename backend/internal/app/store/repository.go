@@ -7,11 +7,13 @@ type UserRepository interface {
 	Create(*model.User) error
 	GetProfile(string) (*model.Profile, error)
 	CreateProfile(*model.User) error
-	// Find(int) (*model.User, error)
 	FindByEmail(string) (*model.User, error)
 	FindByID(string) (*model.User, error)
 	ClaimToken(*model.User, string)
-	GetToken(string) (string, error)
+	CheckToken(string) (string, error)
+	CompareToken(*model.User, string) bool
+	GetToken(int) (string, error)
 	EditAbout(int, string) error
 	EditPass(*model.User) error
+	GetAllUsers() ([]*model.User, error)
 }
