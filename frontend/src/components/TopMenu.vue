@@ -28,7 +28,6 @@ export default {
         '$route'(){
                 try{
                     let id = JSON.parse(localStorage.getItem('account')).id
-                    console.log(id)
                     if (id > 0 && !this.isAuth) {
                         this.isAuth = true
                     }
