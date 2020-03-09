@@ -27,6 +27,7 @@ export default {
     watch:{
         '$route'(){
                 try{
+                    this.isActive = false
                     let id = JSON.parse(localStorage.getItem('account')).id
                     if (id > 0 && !this.isAuth) {
                         this.isAuth = true
