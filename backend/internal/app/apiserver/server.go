@@ -56,6 +56,8 @@ func (s *server) configureRouter() {
 	s.router.Use(s.logRequest)
 	s.router.HandleFunc("/", s.handleHome())
 	s.router.HandleFunc(`/chat/{id:[0-9]+\.[0-9]+}`, s.handleWs())
+	s.router.Handle("/user/{id:[0-9]+}/getmessagehistory", s.auth(s.handleGetMessageHistory())).Methods("POST")
+	s.router.Handle("/checkauth", s.auth(s.handleCheckAuth())).Methods("POST")
 	s.router.HandleFunc("/user/create", s.handleCreateUser()).Methods("POST")
 	s.router.HandleFunc("/user/login", s.handleLoginUser()).Methods("POST")
 	s.router.HandleFunc("/user/{id:[0-9]+}/profile", s.handleProfile()).Methods("GET")
@@ -69,6 +71,24 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Handlers
 func (s *server) handleHome() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("ok"))
+	}
+}
+
+func (s *server) handleGetMessageHistory() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		users, err := s.store.User().GetAllUsers()
+		if err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
+		}
+		if err := json.NewEncoder(w).Encode(users); err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+		}
+	}
+}
+
+func (s *server) handleCheckAuth() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("ok"))
 	}
@@ -123,6 +143,13 @@ func (s *server) handleCreateUser() http.HandlerFunc {
 			s.error(w, r, http.StatusUnprocessableEntity, err)
 			return
 		}
+		token := jwt.New(jwt.SigningMethodHS256)
+		rtClaims := token.Claims.(jwt.MapClaims)
+		rtClaims["sub"] = 1
+		rtClaims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+		tokenString, _ := token.SignedString(s.jwtKey)
+		s.store.User().ClaimToken(u, tokenString)
+		tokenString = fmt.Sprint(tokenString)
 		s.respond(w, r, http.StatusCreated, u)
 	}
 }
@@ -151,7 +178,7 @@ func (s *server) handleEditAbout() http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		bearerToken := r.FormValue("token")
 		em := mux.Vars(r)["id"]
-		tokenEmail, err := s.store.User().GetToken(bearerToken)
+		tokenEmail, err := s.store.User().CheckToken(bearerToken)
 		if err != nil {
 			s.error(w, r, http.StatusUnauthorized, err)
 			return
@@ -191,14 +218,11 @@ func (s *server) handleLoginUser() http.HandlerFunc {
 			s.error(w, r, http.StatusUnauthorized, errIncorrectEmailOrPassword)
 			return
 		}
-
-		token := jwt.New(jwt.SigningMethodHS256)
-		rtClaims := token.Claims.(jwt.MapClaims)
-		rtClaims["sub"] = 1
-		rtClaims["exp"] = time.Now().Add(time.Hour * 24).Unix()
-		tokenString, _ := token.SignedString(s.jwtKey)
-		s.store.User().ClaimToken(u, tokenString)
-		tokenString = fmt.Sprint(tokenString)
+		tokenString, err := s.store.User().GetToken(u.ID)
+		if err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, store.ErrNotValidToken)
+			return
+		}
 		s.respond(w, r, http.StatusOK, map[string]interface{}{"id": u.ID, "token": tokenString})
 	}
 }
@@ -231,7 +255,7 @@ func (s *server) handleEditPassword() http.HandlerFunc {
 		}
 		bearerToken := req.Token
 		em := mux.Vars(r)["id"]
-		tokenID, err := s.store.User().GetToken(bearerToken)
+		tokenID, err := s.store.User().CheckToken(bearerToken)
 		if err != nil {
 			s.error(w, r, http.StatusUnauthorized, err)
 			return
@@ -268,6 +292,24 @@ func (s *server) logRequest(next http.Handler) http.Handler {
 			http.StatusText(rw.code),
 			time.Now().Sub(start),
 		)
+	})
+}
+
+func (s *server) auth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		token := r.PostFormValue("token")
+		id := r.PostFormValue("id")
+		idUsr, err := s.store.User().CheckToken(token)
+		if err != nil || token == "" || id != idUsr {
+			wr := newResponseWriter(w)
+			wr.code = http.StatusUnauthorized
+			http.Error(wr, http.StatusText(wr.code), wr.code)
+			return
+		}
+		rw := newResponseWriter(w)
+		rw.code = http.StatusOK
+		next.ServeHTTP(rw, r)
 	})
 }
 

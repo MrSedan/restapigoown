@@ -16,6 +16,7 @@ type ResponseWriter struct {
 	Hijacker http.Hijacker
 }
 
+// WriteHeader writing header to ResponseWriter struct
 func (w *ResponseWriter) WriteHeader(statusCode int) {
 	w.code = statusCode
 	w.ResponseWriter.WriteHeader(statusCode)
@@ -29,9 +30,10 @@ func newResponseWriter(w http.ResponseWriter) *ResponseWriter {
 	}
 }
 
-func (r *ResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	if r.Hijacker == nil {
+// Hijack hiajcking http
+func (w *ResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if w.Hijacker == nil {
 		return nil, nil, errors.New("http.Hijacker not implemented by underlying http.ResponseWriter")
 	}
-	return r.Hijacker.Hijack()
+	return w.Hijacker.Hijack()
 }

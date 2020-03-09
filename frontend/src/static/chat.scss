@@ -1,0 +1,70 @@
+#chat{
+    border: 2px solid black;
+    border-radius: 8px; 
+}
+
+#msg-list{
+    padding-top: 10px;
+    overflow: auto;
+    width: 100%;
+    height: 500px;
+    // border: 2px solid black;
+    // border-radius: 8px;
+}
+
+#msg-list .message{
+    border: 2px solid black;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    margin: 10px;
+}
+
+.message > p{
+    margin: 0;
+}
+
+#chat #send_msg{
+    padding: 10px;
+    border-top: 2px solid black;
+}
+
+#send_msg input[type="text"]{
+    width: 90%;
+    background: none;
+    border: none;
+    outline: none;
+}
+
+#send_msg input[type="button"]{
+    background: none;
+    border: none;
+    outline: none;
+    width: 10%;
+    border: 2px solid rgb(28, 56, 179);
+    padding: 7px 10px;
+    text-transform: uppercase;
+    border-radius: 24px;
+    transition: .3s ease;
+}
+
+#send_msg input[type="button"]:hover{
+    cursor: pointer;
+    background: rgb(28, 56, 179);
+    color: white;
+}
+
+
+
+#msg-list::-webkit-scrollbar{
+    width: 10px;
+}
+#msg-list::-webkit-scrollbar-thumb{
+    background: rgb(95, 95, 95);
+    border-radius: 24px;
+    margin: 5px 0;
+}
+
+#msg-list::-webkit-scrollbar-thumb:hover {
+    background: rgb(55, 55, 55);
+}
