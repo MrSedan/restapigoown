@@ -4,6 +4,7 @@ services:
         container_name: psql
         restart: always
         image: psql
+        container_name: 'my_site_db'
         build:
             context: ./db
         volumes:
@@ -21,6 +22,7 @@ services:
             - psql-pgql
     go-docker-image:
         image: mrsedan/go-rest-api
+        container_name: 'my_site_backend'
         restart: always
         build: ./backend
         ports: 
