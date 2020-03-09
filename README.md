@@ -1,9 +1,13 @@
-To Compile:
-```bash
-make
+To install:
+```docker
+docker-compose build
 ```
 To Run:
 ```bash
-./apiserv
+docker-compose up -d
+cd frontend
+npm install
+npm install @vue/cli
+npm run serve
 ```
-And you must have `PostgreSQL` and create `myrest` database or you can change server.toml in `configs/server.toml`
+You can change server.toml in `configs/server.toml`
