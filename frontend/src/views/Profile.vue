@@ -34,6 +34,10 @@ export default {
             this.name = r.data.first_name+' '+r.data.last_name
             this.about = r.data.about
         }).catch(()=>{
+            let myId = JSON.parse(localStorage.getItem('account')).id
+            if (myId==id){
+                localStorage.removeItem('account')
+            }
             this.$router.push("/404")
         })
         this.id = id
