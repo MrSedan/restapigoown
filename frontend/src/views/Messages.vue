@@ -1,5 +1,6 @@
 <template>
     <div class="flex-container">
+        <vue-title title="Messages"></vue-title>
         <div class="container">
             <h1>Users</h1>
             <router-link v-for="i in users" :key="i.id" :to="'/profile/'+i.id" class="userurl" tag="div">
@@ -43,7 +44,7 @@ export default {
                 for (let i=0;i<r.data.length;i++){
                     if (this.id != r.data[i].id){
 
-                        this.users.push({id: r.data[i].id, name: r.data[i].first_name + ' ' +r.data[i].last_name})
+                        this.users.push({id: r.data[i].id, name: r.data[i].user_name})
                     }
                 }
             })

@@ -9,10 +9,9 @@ import (
 // User a struct of user info
 type User struct {
 	ID                int    `json:"id" gorm:"not null;primary key"`
-	FirstName         string `json:"first_name"`
-	LastName          string `json:"last_name"`
 	Password          string `sql:"-" json:"-"`
-	Email             string `gorm:"not null;unique" json:"email"`
+	UserName          string `json:"user_name" sql:"user_name" gorm:"not null;unique"`
+	Email             string `gorm:"not null;unique" json:"email,omitempty"`
 	EncryptedPassword string `json:"encrypted_password,omitempty"`
 	JwtToken          string `sql:"jwt_token" json:"-"`
 }

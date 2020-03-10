@@ -113,10 +113,9 @@ func (s *server) handleWs() http.HandlerFunc {
 
 func (s *server) handleCreateUser() http.HandlerFunc {
 	type request struct {
-		FirstName string `json:"first_name"`
-		LastName  string `json:"last_name"`
-		Email     string `json:"email"`
-		Password  string `json:"password"`
+		UserName string `json:"user_name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -126,10 +125,9 @@ func (s *server) handleCreateUser() http.HandlerFunc {
 			return
 		}
 		u := &model.User{
-			FirstName: req.FirstName,
-			LastName:  req.LastName,
-			Email:     strings.ToLower(req.Email),
-			Password:  req.Password,
+			UserName: req.UserName,
+			Email:    strings.ToLower(req.Email),
+			Password: req.Password,
 		}
 		if _, err := s.store.User().FindByEmail(u.Email); err == nil {
 			s.error(w, r, http.StatusBadRequest, errors.New("dublicate account"))
@@ -228,15 +226,32 @@ func (s *server) handleLoginUser() http.HandlerFunc {
 }
 
 func (s *server) handleProfile() http.HandlerFunc {
+	type response struct {
+		ID        int    `json:"id"`
+		UserName  string `json:"user_name"`
+		FirstName string `json:"first_name,omitempty"`
+		LastName  string `json:"last_name,omitempty"`
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		id := mux.Vars(r)["id"]
-		u, err := s.store.User().GetProfile(id)
+		u, err := s.store.User().FindByID(id)
 		if err != nil {
 			s.error(w, r, http.StatusUnprocessableEntity, err)
 			return
 		}
-		s.respond(w, r, http.StatusOK, u)
+		up, err := s.store.User().GetProfile(id)
+		if err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+			return
+		}
+		res := &response{
+			ID:        u.ID,
+			UserName:  u.UserName,
+			FirstName: up.FirstName,
+			LastName:  up.LastName,
+		}
+		s.respond(w, r, http.StatusOK, res)
 	}
 }
 

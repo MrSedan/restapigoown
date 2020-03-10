@@ -25,9 +25,8 @@ func (r *UserRepository) Create(u *model.User) error {
 		return err
 	}
 	return r.store.db.DB().QueryRow(
-		"INSERT INTO users (first_name, last_name, email, encrypted_password) VALUES ($1, $2, $3, $4) RETURNING id",
-		u.FirstName,
-		u.LastName,
+		"INSERT INTO users (user_name, email, encrypted_password) VALUES ($1, $2, $3) RETURNING id",
+		u.UserName,
 		u.Email,
 		u.EncryptedPassword,
 	).Scan(&u.ID)
@@ -36,7 +35,7 @@ func (r *UserRepository) Create(u *model.User) error {
 // CreateProfile ctreating a profile
 func (r *UserRepository) CreateProfile(u *model.User) error {
 	return r.store.db.DB().QueryRow(
-		"INSERT INTO profiles (first_name, last_name, user_email , user_id) VALUES ((SELECT first_name FROM users WHERE email=$1), (SELECT last_name FROM users WHERE email=$1), (SELECT email FROM users WHERE email=$1), (SELECT id FROM users WHERE email=$1)) RETURNING user_email",
+		"INSERT INTO profiles (user_email , user_id) VALUES ((SELECT email FROM users WHERE email=$1), (SELECT id FROM users WHERE email=$1)) RETURNING user_email",
 		u.Email,
 	).Scan(&u.Email)
 }
@@ -45,11 +44,10 @@ func (r *UserRepository) CreateProfile(u *model.User) error {
 func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.DB().QueryRow(
-		"SELECT first_name, last_name, id, email, encrypted_password FROM users WHERE email = $1",
+		"SELECT user_name, id, email, encrypted_password FROM users WHERE email = $1",
 		email,
 	).Scan(
-		&u.FirstName,
-		&u.LastName,
+		&u.UserName,
 		&u.ID,
 		&u.Email,
 		&u.EncryptedPassword,
@@ -66,11 +64,10 @@ func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 func (r *UserRepository) FindByID(id string) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.DB().QueryRow(
-		"SELECT first_name, last_name, id, email, encrypted_password FROM users WHERE id = $1",
+		"SELECT user_name, id, email, encrypted_password FROM users WHERE id = $1",
 		id,
 	).Scan(
-		&u.FirstName,
-		&u.LastName,
+		&u.UserName,
 		&u.ID,
 		&u.Email,
 		&u.EncryptedPassword,
@@ -119,14 +116,14 @@ func (r *UserRepository) GetToken(id int) (string, error) {
 // GetAllUsers getting all users from DB
 func (r *UserRepository) GetAllUsers() ([]*model.User, error) {
 	users := make([]*model.User, 0)
-	rows, err := r.store.db.DB().Query("SELECT first_name, last_name, id FROM users")
+	rows, err := r.store.db.DB().Query("SELECT user_name, id FROM users")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var u = &model.User{}
-		if err := rows.Scan(&u.FirstName, &u.LastName, &u.ID); err != nil {
+		if err := rows.Scan(&u.UserName, &u.ID); err != nil {
 			return nil, err
 		}
 		if err != nil {

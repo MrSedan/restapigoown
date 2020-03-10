@@ -1,5 +1,6 @@
 <template>
     <div id="NotFound">
+        <vue-title title="404"></vue-title>
         <h4>Requested page not found!</h4>
         <h1>404</h1>
         <router-link to="/" id="home">Go home</router-link>

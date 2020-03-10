@@ -1,5 +1,6 @@
 <template>
     <div class="flex-container">
+        <vue-title title="Chat"></vue-title>
         <div class="content">
             <h1>Chat with {{ this.$route.params.id }}</h1>
             <div id="chat">
