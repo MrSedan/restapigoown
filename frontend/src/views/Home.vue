@@ -1,5 +1,6 @@
 <template>
     <div id="greetings">
+        <vue-title title="Welcome!"></vue-title>
         <h1>Welcome to HackerGroup!</h1>
         <h2>This site now in development!!!</h2>
         <router-link to="/login" class="butt">Login</router-link>
@@ -39,7 +40,7 @@ export default {
         border: 2px solid rgba(28, 56, 179, 0.623);
         outline: none;
         text-decoration: none;
-        min-width: 40px;
+        min-width: 80px;
         color: black;
         padding: 10px;
         width: 20%;

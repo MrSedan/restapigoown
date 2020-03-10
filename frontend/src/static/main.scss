@@ -1,14 +1,16 @@
 @import url('https://fonts.googleapis.com/css?family=Montserrat&display=swap');
-body {
+*{
     margin: 0;
     padding: 0;
+}
+body {
     font-family: "Montserrat", "Open Sans";
 }
 
 .flex-container {
-    margin-top: 40px;
+    margin-top: 60px;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
 }
 
 
@@ -45,8 +47,6 @@ body {
     margin-top: 20px;
     margin-right: 20px;
     margin-left: 10px;
-    flex: 0 0 90%;
-    max-width: 90%;
 }
 
 .content .post {
@@ -60,7 +60,6 @@ body {
     margin: 0;
 }
 .content .posts {
-
     display: flex;
     flex-direction: column;
 }

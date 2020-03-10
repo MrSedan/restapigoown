@@ -1,7 +1,7 @@
 <template>
     <div class="inner-width">
-        <router-link to="/" tag="p">Mysite</router-link>
-        <div class="nav-hid" :class="{active: isAuth}">
+        <router-link to="/" tag="p">HACKERGROUP</router-link>
+        <div class="nav-hid" v-if="isAuth">
             <i class="menu-toggle-btn fas" @click="changeActive()" :class="[!isActive ? 'fa-bars' : 'fa-times']"></i>
             <nav class="navigation-menu" :class="{active: isActive}">
                 <router-link to="/"><i class="fas fa-home"></i>Home</router-link>
