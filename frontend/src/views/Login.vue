@@ -1,5 +1,6 @@
 <template>
-    <div class="login-card">
+    <div class="login-card"  @keyup.enter="login()">
+        <vue-title title="Login"></vue-title>
         <h2>Login</h2>
         <input type="email" placeholder="Email" v-model="email">
         <input type="password" placeholder="Password" v-model="password">
