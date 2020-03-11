@@ -25,9 +25,14 @@ const routes = [
       component: () => import('../views/Signup.vue')
     },
     {
-      path: '/messages',
+      path: '/users',
       name: 'Messages',
       component: () => import('../views/Messages.vue')
+    },
+    {
+      path: '/editprofile',
+      name: 'Edit profile',
+      component: () => import('@/views/EditProfile.vue')
     },
     // {
     //   path: '/chat/:id(\\d)+',

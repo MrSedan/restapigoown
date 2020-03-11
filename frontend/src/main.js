@@ -4,7 +4,7 @@ import router from './router'
 import store from './store'
 import axios from 'axios'
 import querystring from 'querystring'
-import VueTitle from '@/components/VueTitle.vue'
+import VueTitle from '@/components/VueTitle.js'
 
 Vue.config.productionTip = false
 Vue.prototype.$http = axios

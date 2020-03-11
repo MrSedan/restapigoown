@@ -33,16 +33,16 @@ export default {
     methods: {
         CreateUser(){
             this.errors = []
-            if(!this.nickname.match(/^(?!\d)(?=.*[a-zA-Z\d])(?=\S+$).{2,15}$/)){
+            if(!this.nickname.match(/^(?!\d)(?=.*[a-zA-Z\d])(?=\s+$).{2,15}$/)){
                 this.errors.push("Nickname can contain only letters and numbers")
             }
-            if(!this.email.match(/^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]{2,4}$/)){
+            if(!this.email.match(/^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]{2,4}$/)){
                 this.errors.push("This is not an email!")
             }
-            if(!this.password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,64}$/)){
+            if(!this.password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(.*[@#!$%^&+=)(']*)(?=\s+$).{8,64}$/)){
                 this.errors.push("Password must contain lowercase letters, numbers and capital letters and its length must be between 8 and 64")
             }
-            if (!(this.email.length && this.password.length && this.re_password.length)) {
+            if (!(this.email.length && this.password.length && this.re_password.length && this.user_name.length)) {
                 this.errors.push("All fields are required!")
             }
             if (this.password != this.re_password){

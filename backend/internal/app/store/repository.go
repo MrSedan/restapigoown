@@ -13,7 +13,11 @@ type UserRepository interface {
 	CheckToken(string) (string, error)
 	CompareToken(*model.User, string) bool
 	GetToken(int) (string, error)
+	//?Profile Editing
 	EditAbout(int, string) error
+	EditFirstName(int, string) error
+	EditLastName(int, string) error
+	//?
 	EditPass(*model.User) error
 	GetAllUsers() ([]*model.User, error)
 }

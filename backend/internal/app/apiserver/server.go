@@ -62,7 +62,7 @@ func (s *server) configureRouter() {
 	s.router.HandleFunc("/user/login", s.handleLoginUser()).Methods("POST")
 	s.router.HandleFunc("/user/{id:[0-9]+}/profile", s.handleProfile()).Methods("GET")
 	s.router.HandleFunc("/user/{id:[0-9]+}/avatar", s.handleGetUserAvatar()).Methods("GET")
-	s.router.HandleFunc("/user/{id:[0-9]+}/edit/profile", s.handleEditAbout()).Methods("GET")
+	s.router.HandleFunc("/user/{id:[0-9]+}/edit/profile", s.handleEditProfile()).Methods("POST")
 	s.router.HandleFunc("/user/{id:[0-9]+}/edit/password", s.handleEditPassword()).Methods("POST")
 }
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -130,7 +130,7 @@ func (s *server) handleCreateUser() http.HandlerFunc {
 			Password: req.Password,
 		}
 		if _, err := s.store.User().FindByEmail(u.Email); err == nil {
-			s.error(w, r, http.StatusBadRequest, errors.New("dublicate account"))
+			s.error(w, r, http.StatusBadRequest, errors.New("Dublicate account email"))
 			return
 		}
 		if err := s.store.User().Create(u); err != nil {
@@ -171,29 +171,56 @@ func (s *server) handleGetUserAvatar() http.HandlerFunc {
 	}
 }
 
-func (s *server) handleEditAbout() http.HandlerFunc {
+func (s *server) handleEditProfile() http.HandlerFunc {
+	type request struct {
+		FirstName string `json:"first_name,omitempty"`
+		LastName  string `json:"last_name,omitempty"`
+		Token     string `json:"token"`
+		About     string `json:"about,omitempty"`
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		bearerToken := r.FormValue("token")
+		req := &request{}
+		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+		bearerToken := req.Token
 		em := mux.Vars(r)["id"]
-		tokenEmail, err := s.store.User().CheckToken(bearerToken)
+		tokenID, err := s.store.User().CheckToken(bearerToken)
 		if err != nil {
 			s.error(w, r, http.StatusUnauthorized, err)
 			return
 		}
 		u, err := s.store.User().FindByID(em)
-		if err != nil || em != tokenEmail {
+		if err != nil || em != tokenID {
 			s.error(w, r, http.StatusBadRequest, errUserErr)
 			return
 		}
-		about := r.FormValue("about")
-		if about == "" {
+		about := req.About
+		firstName := req.FirstName
+		lastName := req.LastName
+		if about == "" && firstName == "" && lastName == "" {
 			s.error(w, r, http.StatusBadRequest, errNotAboutField)
 			return
 		}
-		if err := s.store.User().EditAbout(u.ID, about); err != nil {
-			s.error(w, r, http.StatusUnprocessableEntity, err)
-			return
+		if about != "" {
+			if err := s.store.User().EditAbout(u.ID, about); err != nil {
+				s.error(w, r, http.StatusUnprocessableEntity, err)
+				return
+			}
+		}
+		if firstName != "" {
+			if err := s.store.User().EditFirstName(u.ID, firstName); err != nil {
+				s.error(w, r, http.StatusUnprocessableEntity, err)
+				return
+			}
+		}
+		if lastName != "" {
+			if err := s.store.User().EditLastName(u.ID, lastName); err != nil {
+				s.error(w, r, http.StatusUnprocessableEntity, err)
+				return
+			}
 		}
 		s.respond(w, r, http.StatusOK, map[string]string{"status": "ok"})
 	}
@@ -231,6 +258,7 @@ func (s *server) handleProfile() http.HandlerFunc {
 		UserName  string `json:"user_name"`
 		FirstName string `json:"first_name,omitempty"`
 		LastName  string `json:"last_name,omitempty"`
+		About     string `json:"about,omitempty"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -250,6 +278,7 @@ func (s *server) handleProfile() http.HandlerFunc {
 			UserName:  u.UserName,
 			FirstName: up.FirstName,
 			LastName:  up.LastName,
+			About:     up.About,
 		}
 		s.respond(w, r, http.StatusOK, res)
 	}

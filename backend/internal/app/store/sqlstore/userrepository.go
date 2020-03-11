@@ -167,6 +167,8 @@ func (r *UserRepository) GetProfile(id string) (*model.Profile, error) {
 	return pr, nil
 }
 
+//?Profile Editing
+
 //EditAbout editing about
 func (r *UserRepository) EditAbout(id int, about string) error {
 	_, err := r.store.db.DB().Exec(
@@ -176,6 +178,28 @@ func (r *UserRepository) EditAbout(id int, about string) error {
 	)
 	return err
 }
+
+//EditFirstName editing first name
+func (r *UserRepository) EditFirstName(id int, firstName string) error {
+	_, err := r.store.db.DB().Exec(
+		"UPDATE profiles SET first_name=$1 WHERE user_id=$2",
+		firstName,
+		id,
+	)
+	return err
+}
+
+//EditLastName editing last name
+func (r *UserRepository) EditLastName(id int, lastName string) error {
+	_, err := r.store.db.DB().Exec(
+		"UPDATE profiles SET last_name=$1 WHERE user_id=$2",
+		lastName,
+		id,
+	)
+	return err
+}
+
+//?
 
 //EditPass changing a password to new
 func (r *UserRepository) EditPass(u *model.User) error {

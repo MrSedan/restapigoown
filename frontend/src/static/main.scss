@@ -7,6 +7,14 @@ body {
     font-family: "Montserrat", "Open Sans";
 }
 
+::-webkit-scrollbar{
+    width: 5px;
+}
+::-webkit-scrollbar-thumb{
+    background: rgba(28, 56, 179, 0.623);
+    border-radius: 30px;
+}
+
 .flex-container {
     margin-top: 60px;
     display: flex;
@@ -25,11 +33,12 @@ body {
 
 .profile-flex {
     display: flex;
-    flex-grow: grow;
+    flex-direction: row;
 }
 
 .profile img {
     width: 150px;
+    height: 150px;
     margin: 10px;
     border-radius: 4px;
 }
