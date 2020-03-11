@@ -4,7 +4,7 @@
         <div class="content">
                 <div class="profile">
                     <div class="profile-flex">
-                        <img :src="'/api/user/'+id+'/avatar'" alt="Error photo">
+                        <img :src="'/api/user/'+page_id+'/avatar'" alt="Error photo">
                         <div class="profile-info">
                             <div v-if="name != 'undefined undefined'">
                             <h3 class="name">{{name}}</h3>
@@ -14,8 +14,9 @@
                                 <h3 class="name">@{{user_name}}</h3>
                             </div>
                             <h6 class="online">Дофига онлайн</h6>
-                            <p v-if="about">{{about}}</p>
+                            <p v-if="about" id="about">{{about}}</p>
                         </div>
+                        <router-link to="/editprofile" id="editProfile" v-if="page_id == id">Edit</router-link>
                     </div>
                 </div>
                 <div class="posts">
@@ -32,6 +33,7 @@ export default {
             user_name: "",
             about: "",
             id: 0,
+            page_id: this.$route.params.id,
             name: ""
         }
     },
@@ -49,7 +51,50 @@ export default {
             }
             this.$router.push("/404")
         })
-        this.id = id
+        if(localStorage.getItem('account')){
+            var u = JSON.parse(localStorage.getItem('account'))
+            if (u.id == 0 || u.token == 0){
+                localStorage.removeItem('account')
+                this.$router.push("/login")
+                return
+            }
+            this.$http.post("/api/checkauth", this.$qs.stringify({id: u.id, token: u.token}), {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }).catch(()=>{
+                localStorage.removeItem('account')
+                this.$router.push("/login")
+                return
+            })
+            this.id = u.id
+        } else {
+            this.$router.push("/login")
+            return
+        }
+        this.id = u.id
     }
 }
 </script>
+
+<style lang="scss" scoped>
+#about{
+    margin: 10px 0;
+}
+#editProfile{
+    margin-left: auto;
+    align-self: center;
+    text-decoration: none;
+    color: black;
+    border: 2px solid rgba(28, 56, 179, 0.623);
+    border-radius: 24px;
+    padding: 10px 14px;
+    margin-right: 10px;
+    min-width: 30px;
+    transition: .3s ease;
+    outline: none;
+}
+#editProfile:hover{
+    color: white;
+    background: rgb(28, 56, 179);
+    cursor: pointer;
+}
+</style>

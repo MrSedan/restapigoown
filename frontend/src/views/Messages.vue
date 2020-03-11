@@ -1,6 +1,6 @@
 <template>
     <div class="flex-container">
-        <vue-title title="Messages"></vue-title>
+        <vue-title title="Users"></vue-title>
         <div class="container">
             <h1>Users</h1>
             <router-link v-for="i in users" :key="i.id" :to="'/profile/'+i.id" class="userurl" tag="div">
@@ -27,16 +27,19 @@ export default {
             if (u.id == 0 || u.token == 0){
                 localStorage.removeItem('account')
                 this.$router.push("/login")
+                return
             }
             this.$http.post("/api/checkauth", this.$qs.stringify({id: u.id, token: u.token}), {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }).catch(()=>{
                 localStorage.removeItem('account')
                 this.$router.push("/login")
+                return
             })
             this.id = u.id
         } else {
             this.$router.push("/login")
+            return
         }
         this.$http.post(`/api/user/${this.id}/getmessagehistory`, this.$qs.stringify({id: this.id, token: u.token}), {
                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -54,12 +57,10 @@ export default {
 
 <style lang="scss" scoped>
 .container{
-    margin-left: 40px;
-    width: 100%;
+    margin: 0 40px;
 }
 
 .userurl{
-    width: 80%;
     min-width: 300px;
     height: 80px;
     margin-bottom: 20px;
