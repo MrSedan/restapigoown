@@ -16,9 +16,6 @@
 
 <style src="../static/signup.scss" lang="scss" scoped></style>
 <script>
-String.prototype.capitalize = function(lower) {
-    return (lower ? this.toLowerCase() : this).replace(/(?:^|\s)\S/g, function(a) { return a.toUpperCase(); });
-};
 export default {
     name: "SignUp",
     data(){
@@ -33,16 +30,16 @@ export default {
     methods: {
         CreateUser(){
             this.errors = []
-            if(!this.nickname.match(/^(?!\d)(?=.*[a-zA-Z\d])(?=\s+$).{2,15}$/)){
+            if(!this.nickname.match(/^(?!\d)(?=.*[a-zA-Z\d])(?!.*\s).{2,15}$/)){
                 this.errors.push("Nickname can contain only letters and numbers")
             }
             if(!this.email.match(/^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]{2,4}$/)){
                 this.errors.push("This is not an email!")
             }
-            if(!this.password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(.*[@#!$%^&+=)(']*)(?=\s+$).{8,64}$/)){
+            if(!this.password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])([@#!$%^?&+=)(']*)(?!.*\s).{8,64}$/)){
                 this.errors.push("Password must contain lowercase letters, numbers and capital letters and its length must be between 8 and 64")
             }
-            if (!(this.email.length && this.password.length && this.re_password.length && this.user_name.length)) {
+            if (!(this.email.length && this.password.length && this.re_password.length && this.nickname.length)) {
                 this.errors.push("All fields are required!")
             }
             if (this.password != this.re_password){
@@ -59,7 +56,7 @@ export default {
             this.$http.post('/api/user/create', ac).then(() => {this.$router.push('/login')})
             .catch(e => {
                 if (e.response.status == 400){
-                    this.errors.push("This email is already registered!")
+                    this.errors.push(e.response.data.error.capitalize(true))
                 }
             })
         }

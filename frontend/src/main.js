@@ -11,6 +11,10 @@ Vue.prototype.$http = axios
 Vue.prototype.$qs = querystring
 Vue.component('vue-title', VueTitle)
 
+String.prototype.capitalize = function(lower) {
+  return (lower ? this.toLowerCase() : this).replace(/(?:^|\s)\S/g, function(a) { return a.toUpperCase(); });
+};
+
 new Vue({
   router,
   store,

@@ -133,6 +133,10 @@ func (s *server) handleCreateUser() http.HandlerFunc {
 			s.error(w, r, http.StatusBadRequest, errors.New("Dublicate account email"))
 			return
 		}
+		if _, err := s.store.User().FindByNick(u.UserName); err == nil {
+			s.error(w, r, http.StatusBadRequest, errors.New("Dublicate account username"))
+			return
+		}
 		if err := s.store.User().Create(u); err != nil {
 			s.error(w, r, http.StatusUnprocessableEntity, err)
 			return

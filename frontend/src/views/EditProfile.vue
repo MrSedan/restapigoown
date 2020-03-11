@@ -52,8 +52,8 @@ export default {
             }
             this.$http.post(`/api/user/${this.id}/edit/profile`, {
                 token: token,
-                first_name: this.firstname,
-                last_name: this.lastname,
+                first_name: this.firstname.capitalize(true),
+                last_name: this.lastname.capitalize(true),
                 about: this.about
             }).then(()=>{
                 this.$router.push(`/profile/${this.id}`)

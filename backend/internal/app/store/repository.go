@@ -9,6 +9,7 @@ type UserRepository interface {
 	CreateProfile(*model.User) error
 	FindByEmail(string) (*model.User, error)
 	FindByID(string) (*model.User, error)
+	FindByNick(string) (*model.User, error)
 	ClaimToken(*model.User, string)
 	CheckToken(string) (string, error)
 	CompareToken(*model.User, string) bool

@@ -80,6 +80,26 @@ func (r *UserRepository) FindByID(id string) (*model.User, error) {
 	return u, nil
 }
 
+//FindByNick searching user by username
+func (r *UserRepository) FindByNick(username string) (*model.User, error) {
+	u := &model.User{}
+	if err := r.store.db.DB().QueryRow(
+		"SELECT user_name, id, email, encrypted_password FROM users WHERE user_name = $1",
+		username,
+	).Scan(
+		&u.UserName,
+		&u.ID,
+		&u.Email,
+		&u.EncryptedPassword,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.ErrRecordNotFound
+		}
+		return nil, err
+	}
+	return u, nil
+}
+
 // ClaimToken set a new token to db
 func (r *UserRepository) ClaimToken(u *model.User, token string) {
 	r.store.db.Model(&model.User{}).Where("email=?", u.Email).Update("jwt_token", token)

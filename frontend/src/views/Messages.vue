@@ -57,12 +57,10 @@ export default {
 
 <style lang="scss" scoped>
 .container{
-    margin-left: 40px;
-    width: 100%;
+    margin: 0 40px;
 }
 
 .userurl{
-    width: 80%;
     min-width: 300px;
     height: 80px;
     margin-bottom: 20px;
