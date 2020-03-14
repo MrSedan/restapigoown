@@ -2,16 +2,21 @@
     <div class="flex-container">
         <vue-title title="Chat"></vue-title>
         <div class="content">
-            <h1>Chat with {{ this.$route.params.id }}</h1>
+            <h1>Chat with {{ id }}</h1>
             <div id="chat">
                 <div id="msg-list">
-                <div class="message" v-for="i in 30" :key="i">
-                    <p>{{i}} Test</p>
+                <div class="message" v-for="i in messages" :key="i.id">
+                    <router-link :to="'/profile/'+i.from"><img :src="'/api/user/'+i.from+'/avatar'" alt="Error photo"></router-link>
+                    <div class="msg-body">
+                        <router-link :to="'/profile/'+i.from" class="name">@{{getName(i.from)}}</router-link>
+                        <p class="msg_text">{{i.body}}</p>
+                        <p class="date">{{i.timestamp | formatDate}}</p>
+                    </div>
                 </div>  
                 </div>
-                <div id="send_msg">
-                        <input type="text" placeholder="Message">
-                        <input type="button" value="Send">
+                <div id="send_msg" @keyup.enter="sendMsg()">
+                        <input type="text" placeholder="Message" v-model="body">
+                        <button id="send-btn" @click="sendMsg()"><i class="fas fa-paper-plane"></i></button>
                 </div>
             </div>
         </div>
@@ -21,14 +26,76 @@
 <script>
 export default {
     name: "Chat",
+    data(){
+        return {
+            id:Number(this.$route.params.id),
+            myid: null,
+            messages:[],
+            socket: null,
+            body: "",
+            name: "",
+            myname: ""
+        }
+    },
+    methods: {
+        sendMsg(){
+            if (this.body.trim().length == 0){
+                this.body = ""
+                return
+            }
+            this.socket.send(JSON.stringify({
+                from: this.myid,
+                to: this.id,
+                body: this.body,
+            }))
+            this.body = ""
+        },
+        getName(id){
+            if (id==this.id){
+                return this.name
+            }
+            else{
+                return this.myname
+            }
+        }
+    },
     mounted(){
+        if(localStorage.getItem('account')){
+            var u = JSON.parse(localStorage.getItem('account'))
+            if (u.id == 0 || u.token == 0){
+                localStorage.removeItem('account')
+                this.$router.push("/login")
+                return
+            }
+            this.$http.post("/api/checkauth", this.$qs.stringify({id: u.id, token: u.token}), {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }).catch(()=>{
+                localStorage.removeItem('account')
+                this.$router.push("/login")
+                return
+            })
+            this.myid = u.id
+        } else {
+            this.$router.push("/login")
+            return
+        }
+        this.$http.get(`/api/user/${this.myid}/profile`)
+        .then(r => {
+            this.myname = r.data.user_name
+        })
+        this.$http.get(`/api/user/${this.id}/profile`)
+        .then(r => {
+            this.name = r.data.user_name
+        })
+        .catch(()=>{
+            this.$router.push("/404")
+            return
+        })
+
         try{
-            let id = JSON.parse(localStorage.getItem('account')).id
-            this.socket = new WebSocket(`ws://localhost:8080/api/chat/${id}.${this.id}`)
+            this.socket = new WebSocket(`ws://localhost:8080/api/chat/${this.myid}.${this.id}`)
             this.socket.onopen = () => {
                 console.log("Socket connected")
-                let msg = JSON.stringify({id: id, msg: "connected"})
-                this.socket.send(msg)
             }
 
             this.socket.onclose = (event) => {
@@ -36,8 +103,10 @@ export default {
             }
 
             this.socket.onmessage = (msg) => {
-                this.messages.push(JSON.parse(msg.data))
-                console.log(msg)
+                let mes = JSON.parse(msg.data)
+                mes.timestamp = mes.time
+                this.messages.push(mes)
+                console.log(mes)
             }
 
             this.socket.onerror = (event) => {
@@ -46,6 +115,24 @@ export default {
         } catch(e) {
             this.$router.push("/")
         }
+        this.$http.post(`/api/chat/${this.myid}.${this.id}/gethistory`, this.$qs.stringify({id: u.id, token: u.token}), {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }).then(r => {
+                let mess = []
+                for (let i=0;i<r.data.length; i++){
+                    var mes = {}
+                    var date = (new Date(r.data[i].time*1000)).toLocaleString()
+                    mes = r.data[i]
+                    mes.timestamp = r.data[i].time
+                    mes.time = date
+                    mess.push(mes)
+                }
+                mess.sort((a,b)=>{
+                    return a.timestamp > b.timestamp
+                })
+                this.messages = mess
+            })
+        
     }
 }
 </script>

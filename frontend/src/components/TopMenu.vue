@@ -5,7 +5,7 @@
             <i class="menu-toggle-btn fas" @click="changeActive()" :class="[!isActive ? 'fa-bars' : 'fa-times']"></i>
             <nav class="navigation-menu" :class="{active: isActive}">
                 <router-link to="/"><i class="fas fa-home"></i>Home</router-link>
-                <router-link to="/users"><i class="far fa-envelope"></i>Messages</router-link>
+                <router-link to="/users"><i class="fas fa-users"></i>Users</router-link>
             </nav>
         </div>
     </div>

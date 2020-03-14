@@ -16,7 +16,10 @@
                             <h6 class="online">Дофига онлайн</h6>
                             <p v-if="about" id="about">{{about}}</p>
                         </div>
-                        <router-link to="/editprofile" id="editProfile" v-if="page_id == id">Edit</router-link>
+                        <div class="after-profile">
+                            <router-link :to="'/chat/'+page_id" id="messag"><i class="fas fa-paper-plane"></i></router-link>
+                            <router-link to="/editprofile" id="editProfile" v-if="page_id == id">Edit</router-link>
+                        </div>
                     </div>
                 </div>
                 <div class="posts">
@@ -75,26 +78,4 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
-#about{
-    margin: 10px 0;
-}
-#editProfile{
-    margin-left: auto;
-    align-self: center;
-    text-decoration: none;
-    color: black;
-    border: 2px solid rgba(28, 56, 179, 0.623);
-    border-radius: 24px;
-    padding: 10px 14px;
-    margin-right: 10px;
-    min-width: 30px;
-    transition: .3s ease;
-    outline: none;
-}
-#editProfile:hover{
-    color: white;
-    background: rgb(28, 56, 179);
-    cursor: pointer;
-}
-</style>
+<style lang="scss" src="@/static/profile.scss" scoped></style>

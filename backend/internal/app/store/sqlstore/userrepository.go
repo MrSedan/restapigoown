@@ -146,9 +146,6 @@ func (r *UserRepository) GetAllUsers() ([]*model.User, error) {
 		if err := rows.Scan(&u.UserName, &u.ID); err != nil {
 			return nil, err
 		}
-		if err != nil {
-			return nil, err
-		}
 		users = append(users, u)
 	}
 	if len(users) > 0 {
@@ -241,4 +238,57 @@ func (r *UserRepository) CompareToken(u *model.User, token string) bool {
 		return true
 	}
 	return false
+}
+
+//NewMessage storing new message in db
+func (r *UserRepository) NewMessage(from int, to int, body string, timestamp int64) error {
+	msg := &model.Message{
+		FromID: from,
+		ToID:   to,
+		Body:   body,
+		Time:   timestamp,
+	}
+	if err := r.store.db.Model(&model.Message{}).Create(&msg).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+//GetMessageHistory giving messagehistory
+func (r *UserRepository) GetMessageHistory(p1 int, p2 int) ([]*model.Message, error) {
+	messages := make([]*model.Message, 0)
+	rows1, err := r.store.db.DB().Query("SELECT id, from_id, to_id, body, time FROM messages WHERE from_id=$1 AND to_id=$2",
+		p1,
+		p2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows1.Close()
+	for rows1.Next() {
+		var msg = &model.Message{}
+		if err := rows1.Scan(&msg.ID, &msg.FromID, &msg.ToID, &msg.Body, &msg.Time); err != nil {
+			return nil, err
+		}
+		messages = append(messages, msg)
+	}
+	if p1 != p2 {
+		rows2, err := r.store.db.DB().Query("SELECT id, from_id, to_id, body, time FROM messages WHERE from_id=$1 AND to_id=$2",
+			p2,
+			p1)
+		if err != nil {
+			return nil, err
+		}
+		defer rows2.Close()
+		for rows2.Next() {
+			var msg = &model.Message{}
+			if err := rows2.Scan(&msg.ID, &msg.FromID, &msg.ToID, &msg.Body, &msg.Time); err != nil {
+				return nil, err
+			}
+			messages = append(messages, msg)
+		}
+	}
+	if len(messages) > 0 {
+		return messages, nil
+	}
+	return nil, store.ErrNotMessages
 }

@@ -3,6 +3,7 @@ package websockets
 import (
 	"net/http"
 
+	"github.com/MrSedan/restapigoown/backend/internal/app/model"
 	"github.com/gorilla/websocket"
 )
 
@@ -11,27 +12,23 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-type message struct {
-	ID   int    `json:"id"`
-	Body string `json:"msg"`
-}
-
 //Client ...
 type Client struct {
+	ID     string
 	hub    *Hub
 	conn   *websocket.Conn
-	send   chan *message
+	send   chan *model.Message
 	doneCh chan bool
 }
 
 //ServeWs serving websocket connection
-func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
+func ServeWs(hub *Hub, myid string, w http.ResponseWriter, r *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return
 	}
-	client := &Client{hub: hub, conn: conn, send: make(chan *message, 256), doneCh: make(chan bool)}
+	client := &Client{hub: hub, conn: conn, send: make(chan *model.Message, 256), doneCh: make(chan bool), ID: myid}
 	client.hub.register <- client
 
 	go client.listenRead()
@@ -49,7 +46,7 @@ func (c *Client) listenRead() {
 			c.doneCh <- true
 			return
 		default:
-			msg := message{}
+			msg := model.Message{}
 			err := c.conn.ReadJSON(&msg)
 			if err != nil {
 				c.doneCh <- true
@@ -74,7 +71,6 @@ func (c *Client) listenWrite() {
 				c.conn.WriteMessage(websocket.CloseMessage, []byte("Closed conn"))
 				return
 			}
-
 			c.conn.WriteJSON(message)
 		}
 	}
