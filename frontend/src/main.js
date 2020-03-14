@@ -5,7 +5,16 @@ import store from './store'
 import axios from 'axios'
 import querystring from 'querystring'
 import VueTitle from '@/components/VueTitle.js'
+import VueOverflowScroll from 'vue-overflow-scroll'
+import moment from 'moment'
 
+Vue.filter('formatDate', function(value) {
+  if (value) {
+    return moment.unix(value).format("HH:mm MM.DD.YYYY")
+  }
+})
+
+Vue.use(VueOverflowScroll)
 Vue.config.productionTip = false
 Vue.prototype.$http = axios
 Vue.prototype.$qs = querystring
@@ -14,6 +23,10 @@ Vue.component('vue-title', VueTitle)
 String.prototype.capitalize = function(lower) {
   return (lower ? this.toLowerCase() : this).replace(/(?:^|\s)\S/g, function(a) { return a.toUpperCase(); });
 };
+
+
+
+
 
 new Vue({
   router,

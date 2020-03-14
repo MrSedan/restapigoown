@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -41,7 +42,7 @@ var (
 
 func newServer(store store.Store) *server {
 	s := &server{
-		wsServ: websockets.NewServer(),
+		wsServ: websockets.NewServer(store),
 		router: mux.NewRouter(),
 		logger: logrus.New(),
 		store:  store,
@@ -56,7 +57,8 @@ func (s *server) configureRouter() {
 	s.router.Use(s.logRequest)
 	s.router.HandleFunc("/", s.handleHome())
 	s.router.HandleFunc(`/chat/{id:[0-9]+\.[0-9]+}`, s.handleWs())
-	s.router.Handle("/user/{id:[0-9]+}/getmessagehistory", s.auth(s.handleGetMessageHistory())).Methods("POST")
+	s.router.Handle(`/chat/{id:[0-9]+\.[0-9]+}/gethistory`, s.auth(s.handleGetMessagesHistory())).Methods("POST")
+	s.router.Handle("/user/getalluser", s.auth(s.handleGetAllUser())).Methods("POST")
 	s.router.Handle("/checkauth", s.auth(s.handleCheckAuth())).Methods("POST")
 	s.router.HandleFunc("/user/create", s.handleCreateUser()).Methods("POST")
 	s.router.HandleFunc("/user/login", s.handleLoginUser()).Methods("POST")
@@ -76,7 +78,7 @@ func (s *server) handleHome() http.HandlerFunc {
 	}
 }
 
-func (s *server) handleGetMessageHistory() http.HandlerFunc {
+func (s *server) handleGetAllUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		users, err := s.store.User().GetAllUsers()
 		if err != nil {
@@ -85,6 +87,39 @@ func (s *server) handleGetMessageHistory() http.HandlerFunc {
 		if err := json.NewEncoder(w).Encode(users); err != nil {
 			s.error(w, r, http.StatusUnprocessableEntity, err)
 		}
+	}
+}
+
+func (s *server) handleGetMessagesHistory() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := r.PostFormValue("id")
+		id := mux.Vars(r)["id"]
+		ids := strings.Split(id, ".")
+		if len(ids) != 2 {
+			s.error(w, r, http.StatusBadRequest, errors.New("Not valid id"))
+			return
+		}
+		p1, _ := strconv.Atoi(ids[0])
+		p2, _ := strconv.Atoi(ids[1])
+		if !(ids[0] == userID || ids[1] == userID) {
+			s.error(w, r, http.StatusBadRequest, errors.New("Is not a your chat"))
+			return
+		}
+		messages, err := s.store.User().GetMessageHistory(p1, p2)
+		if err == store.ErrNotMessages {
+			s.error(w, r, http.StatusNoContent, err)
+			return
+		} else if err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+			return
+		}
+		sort.Slice(messages, func(i, j int) bool {
+			return messages[i].Time < messages[j].Time
+		})
+		if err := json.NewEncoder(w).Encode(messages); err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+		}
+
 	}
 }
 
@@ -99,6 +134,11 @@ func (s *server) handleWs() http.HandlerFunc {
 		w = newResponseWriter(w)
 		id := mux.Vars(r)["id"]
 		ids := strings.Split(id, ".")
+		if len(ids) != 2 {
+			s.error(w, r, http.StatusBadRequest, errors.New("Not valid id"))
+			return
+		}
+		myid := ids[0]
 		sort.Strings(ids)
 		id = strings.Join(ids, ".")
 		hub, ok := s.wsServ.Hubs[id]
@@ -107,7 +147,7 @@ func (s *server) handleWs() http.HandlerFunc {
 			s.wsServ.NewHub <- hub
 			go hub.Run()
 		}
-		websockets.ServeWs(hub, w, r)
+		websockets.ServeWs(hub, myid, w, r)
 	}
 }
 

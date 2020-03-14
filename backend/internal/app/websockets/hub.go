@@ -1,11 +1,17 @@
 package websockets
 
+import (
+	"time"
+
+	"github.com/MrSedan/restapigoown/backend/internal/app/model"
+)
+
 //Hub is a room for websockets
 type Hub struct {
 	ID         string
 	server     *Server
 	clients    map[*Client]bool
-	broadcast  chan *message
+	broadcast  chan *model.Message
 	register   chan *Client
 	unregister chan *Client
 }
@@ -16,7 +22,7 @@ func NewHub(id string, serv *Server) *Hub {
 		ID:         id,
 		server:     serv,
 		clients:    make(map[*Client]bool),
-		broadcast:  make(chan *message, 100),
+		broadcast:  make(chan *model.Message, 100),
 		register:   make(chan *Client, 100),
 		unregister: make(chan *Client, 100),
 	}
@@ -34,12 +40,15 @@ func (h *Hub) Run() {
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
 				close(client.send)
-				if len(h.clients) == 0 {
+				if len(h.clients) == 0 && len(h.register) == 0 {
 					h.server.RemHub <- h
 					return
 				}
 			}
 		case message := <-h.broadcast:
+			ti := time.Now().Unix()
+			h.server.db.User().NewMessage(message.FromID, message.ToID, message.Body, ti)
+			message.Time = ti
 			for client := range h.clients {
 				select {
 				case client.send <- message:

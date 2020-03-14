@@ -1,6 +1,8 @@
 package store
 
-import "github.com/MrSedan/restapigoown/backend/internal/app/model"
+import (
+	"github.com/MrSedan/restapigoown/backend/internal/app/model"
+)
 
 // UserRepository is the interface for db
 type UserRepository interface {
@@ -21,4 +23,6 @@ type UserRepository interface {
 	//?
 	EditPass(*model.User) error
 	GetAllUsers() ([]*model.User, error)
+	NewMessage(from int, to int, body string, timestamp int64) error
+	GetMessageHistory(p1 int, p2 int) ([]*model.Message, error)
 }

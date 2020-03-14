@@ -12,7 +12,25 @@
     // border-radius: 8px;
 }
 
+#msg-list .name{
+    color:rgb(28, 56, 179);
+    text-decoration: none;
+    font-weight: bolder;
+    outline: none;
+}
+
+.date{
+    color: rgb(116, 116, 116);
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.msg_text{
+    margin-top: 10px;
+}
+
 #msg-list .message{
+    display: flex;
     border: 2px solid black;
     padding: 10px 15px;
     border-radius: 8px;
@@ -20,35 +38,52 @@
     margin: 10px;
 }
 
+.message img{
+    align-self: flex-start;
+    max-width: 40px;
+    border-radius: 50%;
+}
+.message .msg-body{
+    margin-left: 10px;
+    flex: 1;
+}
+
 .message > p{
     margin: 0;
 }
 
 #chat #send_msg{
+    height: 40px;
     padding: 10px;
     border-top: 2px solid black;
+    display: flex;
 }
 
 #send_msg input[type="text"]{
-    width: 90%;
+    height: 40px;
     background: none;
     border: none;
     outline: none;
+    line-height: 40px;
+    font-size: 16px;
+    flex: 1;
 }
 
-#send_msg input[type="button"]{
+#send_msg #send-btn{
+    margin-left: 10px;
+    display: block;
     background: none;
     border: none;
     outline: none;
-    width: 10%;
+    height: 40px;
+    width: 40px;
     border: 2px solid rgb(28, 56, 179);
-    padding: 7px 10px;
     text-transform: uppercase;
-    border-radius: 24px;
+    border-radius: 50%;
     transition: .3s ease;
 }
 
-#send_msg input[type="button"]:hover{
+#send_msg #send-btn:hover{
     cursor: pointer;
     background: rgb(28, 56, 179);
     color: white;

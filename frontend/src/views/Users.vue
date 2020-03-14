@@ -14,7 +14,7 @@
 
 <script>
 export default {
-    name: "Messages",
+    name: "Users",
     data() {
         return{
             users: [],
@@ -41,7 +41,7 @@ export default {
             this.$router.push("/login")
             return
         }
-        this.$http.post(`/api/user/${this.id}/getmessagehistory`, this.$qs.stringify({id: this.id, token: u.token}), {
+        this.$http.post(`/api/user/getalluser`, this.$qs.stringify({id: this.id, token: u.token}), {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }).then(r => {
                 for (let i=0;i<r.data.length;i++){
@@ -66,12 +66,13 @@ export default {
     margin-bottom: 20px;
     border-radius: 15px;
     box-shadow: 5px 5px 10px rgba(0,0,0,0.2);
-    padding: 20px 10px;
+    padding: 0 10px;
     text-decoration: none;
     color: black;
     outline: none;
     display: flex;
     transition: .3s linear;
+    align-items: center;
     vertical-align: middle;
 }
 
@@ -82,7 +83,8 @@ export default {
 }
 
 .userurl img{
-    width: 74px;
+    max-width: 74px;
+    max-height: 74px;
     border-radius: 50%;
     display: inline-block;
     margin-right: 10px;

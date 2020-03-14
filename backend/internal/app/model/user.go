@@ -8,7 +8,7 @@ import (
 
 // User a struct of user info
 type User struct {
-	ID                int    `json:"id" gorm:"not null;primary key"`
+	ID                int    `json:"id" gorm:"not null;primary key;unique"`
 	Password          string `sql:"-" json:"-"`
 	UserName          string `json:"user_name" sql:"user_name" gorm:"not null;unique"`
 	Email             string `gorm:"not null;unique" json:"email,omitempty"`
