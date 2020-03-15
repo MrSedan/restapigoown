@@ -2,6 +2,7 @@ package websockets
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/MrSedan/restapigoown/backend/internal/app/model"
 	"github.com/gorilla/websocket"
@@ -49,6 +50,12 @@ func (c *Client) listenRead() {
 			msg := model.Message{}
 			err := c.conn.ReadJSON(&msg)
 			if err != nil {
+				c.doneCh <- true
+				return
+			}
+			i, err1 := c.hub.server.db.User().CheckToken(msg.Token)
+			ui, err2 := strconv.Atoi(i)
+			if err1 != nil || ui != msg.FromID || err2 != nil {
 				c.doneCh <- true
 				return
 			}
