@@ -93,6 +93,7 @@ func (s *server) handleGetAllUser() http.HandlerFunc {
 func (s *server) handleGetMessagesHistory() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := r.PostFormValue("id")
+		token := r.PostFormValue("token")
 		id := mux.Vars(r)["id"]
 		ids := strings.Split(id, ".")
 		if len(ids) != 2 {
@@ -100,6 +101,11 @@ func (s *server) handleGetMessagesHistory() http.HandlerFunc {
 			return
 		}
 		p1, _ := strconv.Atoi(ids[0])
+		uid, err := s.store.User().CheckToken(token)
+		if uid != userID || uid != ids[0] {
+			s.error(w, r, http.StatusBadRequest, errors.New("Is not a your chat"))
+			return
+		}
 		p2, _ := strconv.Atoi(ids[1])
 		if !(ids[0] == userID || ids[1] == userID) {
 			s.error(w, r, http.StatusBadRequest, errors.New("Is not a your chat"))

@@ -34,7 +34,8 @@ export default {
             socket: null,
             body: "",
             name: "",
-            myname: ""
+            myname: "",
+            token:""
         }
     },
     methods: {
@@ -44,6 +45,7 @@ export default {
                 return
             }
             this.socket.send(JSON.stringify({
+                token: this.token,
                 from: this.myid,
                 to: this.id,
                 body: this.body,
@@ -70,6 +72,7 @@ export default {
                 this.$router.push("/login")
                 return
             }
+            this.token = u.token
             this.$http.post("/api/checkauth", this.$qs.stringify({id: u.id, token: u.token}), {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }).catch(()=>{
