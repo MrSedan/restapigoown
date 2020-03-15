@@ -217,10 +217,10 @@ func (s *server) handleGetUserAvatar() http.HandlerFunc {
 
 func (s *server) handleEditProfile() http.HandlerFunc {
 	type request struct {
-		FirstName string `json:"first_name,omitempty"`
-		LastName  string `json:"last_name,omitempty"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
 		Token     string `json:"token"`
-		About     string `json:"about,omitempty"`
+		About     string `json:"about"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -248,23 +248,17 @@ func (s *server) handleEditProfile() http.HandlerFunc {
 			s.error(w, r, http.StatusBadRequest, errNotAboutField)
 			return
 		}
-		if about != "" {
-			if err := s.store.User().EditAbout(u.ID, about); err != nil {
-				s.error(w, r, http.StatusUnprocessableEntity, err)
-				return
-			}
+		if err := s.store.User().EditAbout(u.ID, about); err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+			return
 		}
-		if firstName != "" {
-			if err := s.store.User().EditFirstName(u.ID, firstName); err != nil {
-				s.error(w, r, http.StatusUnprocessableEntity, err)
-				return
-			}
+		if err := s.store.User().EditFirstName(u.ID, firstName); err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+			return
 		}
-		if lastName != "" {
-			if err := s.store.User().EditLastName(u.ID, lastName); err != nil {
-				s.error(w, r, http.StatusUnprocessableEntity, err)
-				return
-			}
+		if err := s.store.User().EditLastName(u.ID, lastName); err != nil {
+			s.error(w, r, http.StatusUnprocessableEntity, err)
+			return
 		}
 		s.respond(w, r, http.StatusOK, map[string]string{"status": "ok"})
 	}
