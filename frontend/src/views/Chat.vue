@@ -96,7 +96,7 @@ export default {
         })
 
         try{
-            this.socket = new WebSocket(`wss://hackergroup.tk/api/chat/${this.myid}.${this.id}`)
+            this.socket = new WebSocket(`ws://localhost:8080/api/chat/${this.myid}.${this.id}?token=${u.token}&id=${u.id}`)
             this.socket.onopen = () => {
                 console.log("Socket connected")
             }
