@@ -31,13 +31,13 @@ export default {
     methods:{
         sendProfile(){
             this.errors = []
-            if (!this.firstname.match(/^[a-zA-Z]{0,20}$/)){
+            if (!this.firstname.match(/^[a-zA-Zа-яА-ЯёЁ]{0,20}$/u)){
                 this.errors.push("First Name must contain only letters")
             }
-            if (!this.lastname.match(/^[a-zA-Z]{0,30}$/)){
+            if (!this.lastname.match(/^[a-zA-Zа-яА-ЯёЁ]{0,30}$/u)){
                 this.errors.push("Last Name must contain only letters")
             }
-            if (!this.about.match(/^[a-zA-Z\d\s.:;\-!'@#%$,+=^()*]{0,2000}$/)){
+            if (!this.about.match(/^[a-zA-Z\d\s.:;\-!'@#%$,+=^()*а-яА-ЯёЁ]{0,2000}$/u)){
                 this.errors.push("Your about contain bad symbols or very large(>120 symbols)")
             }
             if (this.errors.length > 0){

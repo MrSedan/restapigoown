@@ -301,9 +301,9 @@ func (s *server) handleProfile() http.HandlerFunc {
 	type response struct {
 		ID        int    `json:"id"`
 		UserName  string `json:"user_name"`
-		FirstName string `json:"first_name,omitempty"`
-		LastName  string `json:"last_name,omitempty"`
-		About     string `json:"about,omitempty"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		About     string `json:"about"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
