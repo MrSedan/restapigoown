@@ -131,13 +131,6 @@ func (s *server) handleCheckAuth() http.HandlerFunc {
 
 func (s *server) handleWs() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		token := r.FormValue("token")
-		getid := r.FormValue("id")
-		ui, err := s.store.User().CheckToken(token)
-		if err != nil || ui != getid {
-			s.error(w, r, http.StatusUnauthorized, nil)
-			return
-		}
 		w = newResponseWriter(w)
 		id := mux.Vars(r)["id"]
 		ids := strings.Split(id, ".")
@@ -146,6 +139,13 @@ func (s *server) handleWs() http.HandlerFunc {
 			return
 		}
 		myid := ids[0]
+		token := r.FormValue("token")
+		getid := r.FormValue("id")
+		ui, err := s.store.User().CheckToken(token)
+		if err != nil || ui != getid || getid != myid {
+			s.error(w, r, http.StatusUnauthorized, nil)
+			return
+		}
 		sort.Strings(ids)
 		id = strings.Join(ids, ".")
 		hub, ok := s.wsServ.Hubs[id]
