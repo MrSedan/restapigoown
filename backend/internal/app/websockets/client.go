@@ -59,6 +59,7 @@ func (c *Client) listenRead() {
 				c.doneCh <- true
 				return
 			}
+			msg.Token = ""
 			c.hub.broadcast <- &msg
 		}
 	}

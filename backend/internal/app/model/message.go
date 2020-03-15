@@ -7,5 +7,5 @@ type Message struct {
 	ToID   int    `json:"to"`
 	Time   int64  `json:"time"`
 	Body   string `json:"body"`
-	Token  string `json:"token" sql:"-"`
+	Token  string `json:"token,omitempty" sql:"-"`
 }
