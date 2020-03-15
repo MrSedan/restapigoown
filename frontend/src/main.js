@@ -10,7 +10,7 @@ import moment from 'moment'
 
 Vue.filter('formatDate', function(value) {
   if (value) {
-    return moment.unix(value).format("HH:mm MM.DD.YYYY")
+    return moment.unix(value).format("HH:mm DD.MM.YYYY")
   }
 })
 

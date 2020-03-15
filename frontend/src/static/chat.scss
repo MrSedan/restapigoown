@@ -3,6 +3,13 @@
     border-radius: 8px; 
 }
 
+.content > h1 #name{
+    text-decoration: none;
+    outline: none;
+    color:rgb(28, 56, 179);
+    font-weight: bolder;
+}
+
 #msg-list{
     padding-top: 10px;
     overflow: auto;

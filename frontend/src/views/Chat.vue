@@ -2,7 +2,7 @@
     <div class="flex-container">
         <vue-title title="Chat"></vue-title>
         <div class="content">
-            <h1>Chat with {{ id }}</h1>
+            <h1>Chat with <router-link :to="'/profile/'+id" id="name">@{{ getName(id) }}</router-link></h1>
             <div id="chat">
                 <div id="msg-list">
                 <div class="message" v-for="i in messages" :key="i.id">
@@ -59,6 +59,9 @@ export default {
             }
         }
     },
+    beforeDestroy(){
+        this.socket.close()
+    },
     mounted(){
         if(localStorage.getItem('account')){
             var u = JSON.parse(localStorage.getItem('account'))
@@ -93,7 +96,7 @@ export default {
         })
 
         try{
-            this.socket = new WebSocket(`ws://localhost:8080/api/chat/${this.myid}.${this.id}`)
+            this.socket = new WebSocket(`wss://hackergroup.tk/api/chat/${this.myid}.${this.id}`)
             this.socket.onopen = () => {
                 console.log("Socket connected")
             }
