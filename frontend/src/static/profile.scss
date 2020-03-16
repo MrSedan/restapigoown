@@ -86,19 +86,34 @@
 
 @media screen and (max-width:700px){
     .profile-flex {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-wrap: wrap-reverse;
+        justify-content: center;
+        align-items: center;
         padding: 10px;
     }
     .after-profile{
+        order: 2;
+        flex-direction: column-reverse;
+        align-items: center;
+        justify-content: center;
         margin-left: auto;
         margin-right: auto;
     }
+    #messag{
+        margin-left: auto;
+        margin: 0;
+        margin-top: 10px;
+    }
+    #editProfile{
+        margin-right: auto;
+    }
     .name{
+        order: 3;
         margin: 0 !important;
         margin-top: 5px !important;
     }
     img{
+        order: 1;
         margin: 0 !important;
     }
 }
