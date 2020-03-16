@@ -66,8 +66,7 @@ export default {
         },
         socketCon(){
             try{
-                this.socket = new WebSocket(`wss://hackcergroup.tk/api/chat/${this.myid}.${this.id}?token=${this.token}&id=${this.myid}`)
-
+                this.socket = new WebSocket(`wss://hackergroup.tk/api/chat/${this.myid}.${this.id}?token=${this.token}&id=${this.myid}`)
                 this.socket.onclose = (event) => {
                     if (event.code == 1006){
                         this.socketCon()
