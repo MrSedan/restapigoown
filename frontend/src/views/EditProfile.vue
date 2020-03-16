@@ -37,8 +37,8 @@ export default {
             if (!this.lastname.match(/^[a-zа-яё]{0,30}$/i)){
                 this.errors.push("Last Name must contain only letters")
             }
-            if (!this.about.match(/^[a-z\d\s.:;\-!'@#%$,+=^()*а-яё]{0,2000}$/i)){
-                this.errors.push("Your about contain bad symbols or very large(>120 symbols)")
+            if (!this.about.match(/^[a-z\d\s.:;\-!'@#%$,+=^()*а-яё]{0,1000}$/i)){
+                this.errors.push("Your about contain bad symbols or very large(>1000 symbols)")
             }
             if (this.errors.length > 0){
                 this.obnull()
