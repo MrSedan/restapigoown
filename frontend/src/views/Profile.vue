@@ -6,7 +6,7 @@
                     <div class="profile-flex">
                         <img :src="'/api/user/'+page_id+'/avatar'" alt="Error photo">
                         <div class="profile-info">
-                            <div v-if="name != 'undefined undefined'">
+                            <div v-if="name != ' '">
                             <h3 class="name">{{name}}</h3>
                             <h5>@{{user_name}}</h5>
                             </div>

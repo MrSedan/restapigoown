@@ -24,6 +24,10 @@
 </template>
 
 <script>
+function scroll(){
+    let block = document.getElementById("msg-list")
+    block.scrollTo(0, block.scrollHeight)
+}
 export default {
     name: "Chat",
     data(){
@@ -63,23 +67,18 @@ export default {
         socketCon(){
             try{
                 this.socket = new WebSocket(`wss://hackcergroup.tk/api/chat/${this.myid}.${this.id}?token=${this.token}&id=${this.myid}`)
-                this.socket.onopen = () => {
-                    console.log("Socket connected")
-                }
 
                 this.socket.onclose = (event) => {
                     if (event.code == 1006){
                         this.socketCon()
                         return
                     }
-                    console.log("Socket closed", event)
                 }
 
                 this.socket.onmessage = (msg) => {
                     let mes = JSON.parse(msg.data)
                     mes.timestamp = mes.time
                     this.messages.push(mes)
-                    console.log(mes)
                 }
 
                 this.socket.onerror = (event) => {
@@ -88,6 +87,11 @@ export default {
             } catch(e) {
                 this.$router.push("/")
             }
+        }
+    },
+    watch: {
+        messages: ()=>{
+            setTimeout(scroll, 25)   
         }
     },
     beforeDestroy(){

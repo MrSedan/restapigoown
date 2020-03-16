@@ -83,3 +83,22 @@
     flex-direction: column;
     align-items: center;
 }
+
+@media screen and (max-width:700px){
+    .profile-flex {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px;
+    }
+    .after-profile{
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .name{
+        margin: 0 !important;
+        margin-top: 5px !important;
+    }
+    img{
+        margin: 0 !important;
+    }
+}

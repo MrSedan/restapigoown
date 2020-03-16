@@ -2,7 +2,8 @@
     <div class="flex-container">
         <vue-title title="Users"></vue-title>
         <div class="container">
-            <h1>Users</h1>
+            <h1 v-if="users.length != 0">Users</h1>
+            <h1 v-else>Users not found :-(</h1>
             <router-link v-for="i in users" :key="i.id" :to="'/profile/'+i.id" class="userurl" tag="div">
             <img :src="'/api/user/'+i.id+'/avatar'">
             <h3>{{i.name}}</h3>
