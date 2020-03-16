@@ -33,7 +33,7 @@ export default {
             if(!this.nickname.match(/^(?!\d)(?=.*[a-zA-Z\d])(?!.*\s).{2,15}$/)){
                 this.errors.push("Nickname can contain only letters and numbers")
             }
-            if(!this.email.match(/^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]{2,4}$/)){
+            if(!this.email.match(/^[a-zA-Z0-9.-]+@[a-zA-Z0-9]+\.[a-zA-Z]{2,4}$/)){
                 this.errors.push("This is not an email!")
             }
             if(!this.password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])([@#!$%^?&+=)(']*)(?!.*\s).{8,64}$/)){

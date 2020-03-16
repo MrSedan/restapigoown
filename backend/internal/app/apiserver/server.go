@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -145,11 +146,11 @@ func (s *server) handleWs() http.HandlerFunc {
 			return
 		}
 		myid := ids[0]
-		token := r.FormValue("token")
-		getid := r.FormValue("id")
+		token := r.URL.Query().Get("token")
+		getid := r.URL.Query().Get("id")
 		ui, err := s.store.User().CheckToken(token)
 		if err != nil || ui != getid || getid != myid {
-			s.error(w, r, http.StatusUnauthorized, nil)
+			s.error(w, r, http.StatusUnauthorized, errors.New("Error"))
 			return
 		}
 		sort.Strings(ids)
@@ -175,6 +176,11 @@ func (s *server) handleCreateUser() http.HandlerFunc {
 		req := &request{}
 		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 			s.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+		ematch, err := regexp.Match(`(?i)^[a-z0-9.\-]+@[a-z0-9.]+\.[a-z]{2,4}$`, []byte(req.Email))
+		if !verifyPassword(req.Password) || !verifyUName(req.UserName) || !ematch || err != nil {
+			s.error(w, r, http.StatusBadRequest, errors.New("Bad input"))
 			return
 		}
 		u := &model.User{
@@ -257,6 +263,13 @@ func (s *server) handleEditProfile() http.HandlerFunc {
 		about := req.About
 		firstName := req.FirstName
 		lastName := req.LastName
+		abmatch, _ := regexp.Match(`(?i)^[a-z\d\s.:;\-!'@#%$,+=^()*а-яё]{0,1000}$`, []byte(about))
+		fmatch, _ := regexp.Match(`(?i)^[a-zа-яё]{0,20}$`, []byte(firstName))
+		lmatch, _ := regexp.Match(`(?i)^[a-zа-яё]{0,30}$`, []byte(lastName))
+		if !abmatch || !fmatch || !lmatch {
+			s.error(w, r, http.StatusBadRequest, errors.New("Wrong data"))
+			return
+		}
 		if about == "" && firstName == "" && lastName == "" {
 			s.error(w, r, http.StatusBadRequest, errNotAboutField)
 			return

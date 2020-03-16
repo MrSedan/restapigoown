@@ -59,6 +59,35 @@ export default {
             else{
                 return this.myname
             }
+        },
+        socketCon(){
+            try{
+                this.socket = new WebSocket(`ws://localhost:8080/api/chat/${this.myid}.${this.id}?token=${this.token}&id=${this.myid}`)
+                this.socket.onopen = () => {
+                    console.log("Socket connected")
+                }
+
+                this.socket.onclose = (event) => {
+                    if (event.code == 1006){
+                        this.socketCon()
+                        return
+                    }
+                    console.log("Socket closed", event)
+                }
+
+                this.socket.onmessage = (msg) => {
+                    let mes = JSON.parse(msg.data)
+                    mes.timestamp = mes.time
+                    this.messages.push(mes)
+                    console.log(mes)
+                }
+
+                this.socket.onerror = (event) => {
+                    console.log("Socket error: ", event)
+                }
+            } catch(e) {
+                this.$router.push("/")
+            }
         }
     },
     beforeDestroy(){
@@ -97,30 +126,7 @@ export default {
             this.$router.push("/404")
             return
         })
-
-        try{
-            this.socket = new WebSocket(`wss://hackergroup.tk/api/chat/${this.myid}.${this.id}?token=${u.token}&id=${u.id}`)
-            this.socket.onopen = () => {
-                console.log("Socket connected")
-            }
-
-            this.socket.onclose = (event) => {
-                console.log("Socket closed", event)
-            }
-
-            this.socket.onmessage = (msg) => {
-                let mes = JSON.parse(msg.data)
-                mes.timestamp = mes.time
-                this.messages.push(mes)
-                console.log(mes)
-            }
-
-            this.socket.onerror = (event) => {
-                console.log("Socket error: ", event)
-            }
-        } catch(e) {
-            this.$router.push("/")
-        }
+        this.socketCon()
         this.$http.post(`/api/chat/${this.myid}.${this.id}/gethistory`, this.$qs.stringify({id: u.id, token: u.token}), {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }).then(r => {
